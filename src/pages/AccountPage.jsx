@@ -254,43 +254,43 @@ const CrosswordList = styled.div`
 
 const AccountInfo = styled.div`
   background: white;
-  padding: 25px;
+  padding: 20px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   height: fit-content;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #333;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #eee;
 `;
 
 const InfoGroup = styled.div`
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   width: 100%;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: #555;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid ${props => props.disabled ? '#ddd' : '#aaa'};
   border-radius: 6px;
   background-color: ${props => props.disabled ? '#f5f5f5' : 'white'};
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 
   &:focus {
     outline: none;
@@ -301,11 +301,11 @@ const Input = styled.input`
 
 const Select = styled.select`
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid ${props => props.disabled ? '#ddd' : '#aaa'};
   border-radius: 6px;
   background-color: ${props => props.disabled ? '#f5f5f5' : 'white'};
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 
   &:focus {
     outline: none;
@@ -316,18 +316,18 @@ const Select = styled.select`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 15px;
-  margin-top: 15px;
-  padding-top: 15px;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #eee;
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
+  padding: 8px 16px;
   border: none;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
 
