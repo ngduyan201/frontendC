@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { crosswordService } from '../../services/crosswordService';
 
 const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(data || {
-    name: '',
+    title: '',
     status: '',
     grade: '',
     subject: '',
-    author: ''
   });
   const [isEditing, setIsEditing] = useState(mode === 'create');
 
@@ -73,10 +73,35 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
     }));
   };
 
-  const handleCreateClick = () => {
-    console.log('Creating new puzzle:', formData);
-    navigate('/create');
-    onClose();
+  const handleCreateClick = async () => {
+    try {
+      // Validate dữ liệu
+      if (!formData.title || !formData.status || !formData.grade || !formData.subject) {
+        alert('Vui lòng điền đầy đủ thông tin');
+        return;
+      }
+
+      // Chuyển đổi status chính xác
+      const dbStatus = formData.status === 'public' ? 'Chia sẻ' : 'Không chia sẻ';
+      
+      const response = await crosswordService.createCrossword({
+        title: formData.title,
+        status: dbStatus,
+        gradeLevel: formData.grade,
+        subject: formData.subject
+      });
+
+      if (response.success) {
+        alert('Tạo ô chữ thành công!');
+        navigate('/create', { 
+          state: { crosswordId: response.data._id } 
+        });
+        onClose();
+      }
+    } catch (error) {
+      console.error('Lỗi khi tạo ô chữ:', error);
+      alert(error.message || 'Có lỗi xảy ra khi tạo ô chữ');
+    }
   };
 
   if (!isOpen) return null;
@@ -96,8 +121,8 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
             <InfoLabel>Tên ô chữ:</InfoLabel>
             <Input
               type="text"
-              name="name"
-              value={formData.name}
+              name="title"
+              value={formData.title}
               onChange={handleInputChange}
               placeholder="Nhập tên ô chữ"
               disabled={!isEditing}
