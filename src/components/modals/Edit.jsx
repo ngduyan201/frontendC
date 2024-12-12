@@ -82,14 +82,18 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
       }
 
       // Chuyển đổi status chính xác
-      const dbStatus = formData.status === 'public' ? 'Chia sẻ' : 'Không chia sẻ';
+      const dbStatus = formData.status === 'public' ? 'Công khai' : 'Không công khai';
       
-      const response = await crosswordService.createCrossword({
+      // Tạo object data để gửi lên server
+      const crosswordData = {
         title: formData.title,
         status: dbStatus,
         gradeLevel: formData.grade,
         subject: formData.subject
-      });
+      };
+
+      console.log('Creating crossword with data:', crosswordData);
+      const response = await crosswordService.createCrossword(crosswordData);
 
       if (response.success) {
         alert('Tạo ô chữ thành công!');
@@ -99,8 +103,8 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
         onClose();
       }
     } catch (error) {
-      console.error('Lỗi khi tạo ô chữ:', error);
-      alert(error.message || 'Có lỗi xảy ra khi tạo ô chữ');
+      console.error('Error in handleCreateClick:', error);
+      alert('Có lỗi xảy ra khi tạo ô chữ');
     }
   };
 
@@ -133,7 +137,7 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
             <InfoLabel>Trạng thái:</InfoLabel>
             <StatusButtonGroup>
               <StatusButton 
-                isSelected={formData.status === 'public'}
+                $isSelected={formData.status === 'public'}
                 onClick={() => !isEditing ? null : handleInputChange({
                   target: { name: 'status', value: 'public' }
                 })}
@@ -143,7 +147,7 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
                 Công khai
               </StatusButton>
               <StatusButton 
-                isSelected={formData.status === 'private'}
+                $isSelected={formData.status === 'private'}
                 onClick={() => !isEditing ? null : handleInputChange({
                   target: { name: 'status', value: 'private' }
                 })}
@@ -445,17 +449,17 @@ const StatusButton = styled.button`
   flex: 1;
   padding: 12px;
   font-size: 1.1rem;
-  border: 1px solid ${props => props.isSelected ? '#4CAF50' : '#ddd'};
+  border: 1px solid ${props => props.$isSelected ? '#4CAF50' : '#ddd'};
   border-radius: 6px;
-  background-color: ${props => props.isSelected ? '#E8F5E9' : 'white'};
-  color: ${props => props.isSelected ? '#2E7D32' : '#666'};
+  background-color: ${props => props.$isSelected ? '#E8F5E9' : 'white'};
+  color: ${props => props.$isSelected ? '#2E7D32' : '#666'};
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   transition: all 0.3s ease;
   position: relative;
 
   &:hover:not(:disabled) {
     border-color: #4CAF50;
-    background-color: ${props => props.isSelected ? '#E8F5E9' : '#F5F5F5'};
+    background-color: ${props => props.$isSelected ? '#E8F5E9' : '#F5F5F5'};
   }
 
   &:disabled {

@@ -59,12 +59,41 @@ const Layout = () => {
           <LogoText>TRÒ CHƠI Ô CHỮ</LogoText>
         </LogoContainer>
         <Navigation>
-          {/* Sử dụng NavLink thay vì Link */}
-          <NavButton to="/homepage" activeClassName="active">TRANG CHỦ</NavButton>
-          <NavButton to="/library" activeClassName="active">THƯ VIỆN</NavButton>
-          <NavButton to="/guide" activeClassName="active">HƯỚNG DẪN</NavButton>
-          <NavButton to="/code" activeClassName="active">NHẬP MÃ</NavButton>
-          <NavButton to="/account" activeClassName="active">TÀI KHOẢN</NavButton>
+          <NavButton 
+            to="/homepage"
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            TRANG CHỦ
+          </NavButton>
+          
+          <NavButton 
+            to="/library"
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            THƯ VIỆN
+          </NavButton>
+          
+          <NavButton 
+            to="/guide"
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            HƯỚNG DẪN
+          </NavButton>
+          
+          <NavButton 
+            to="/code"
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            NHẬP MÃ
+          </NavButton>
+          
+          <NavButton 
+            to="/account"
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            TÀI KHOẢN
+          </NavButton>
+          
           <LogoutLink onClick={handleLogoutClick}>ĐĂNG XUẤT</LogoutLink>
         </Navigation>
       </Header>
@@ -159,19 +188,18 @@ const NavButton = styled(NavLink)`
   color: white;
   font-weight: bold;
 
-  &.active {
-    background-color: yellow;  /* Nền vàng khi mục được chọn */
-    color: black; /* Đổi màu chữ nếu cần */
-    cursor: default;  /* Làm con trỏ không thay đổi khi hover vào mục đang chọn */
-  }
-
   &:hover {
     background-color: #339900;
   }
 
-  /* Vô hiệu hoá hiệu ứng hover khi đang có class active */
-  &.active:hover {
-    background-color: yellow;  /* Giữ màu vàng khi hover trên mục active */
+  &.active {
+    background-color: yellow;
+    color: black;
+    cursor: default;
+    
+    &:hover {
+      background-color: yellow;
+    }
   }
 `;
 
