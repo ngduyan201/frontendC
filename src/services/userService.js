@@ -11,6 +11,10 @@ class UserService {
       }
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
       throw error.response?.data || error;
     }
   }
@@ -23,6 +27,10 @@ class UserService {
       }
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
       throw error.response?.data || error;
     }
   }
@@ -35,6 +43,10 @@ class UserService {
       }
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
       if (error.response?.data) {
         throw error.response.data;
       }

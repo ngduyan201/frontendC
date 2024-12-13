@@ -7,14 +7,30 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Kiểm tra thông tin đăng nhập khi khởi động
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const initAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const refreshToken = localStorage.getItem('refreshToken');
+        
+        if (token && refreshToken) {
+          // Thử refresh token khi khởi động
+          await authService.refreshToken();
+          
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Xóa thông tin đăng nhập nếu có lỗi
+        logout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    initAuth();
   }, []);
 
   const login = (userData) => {
@@ -25,8 +41,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.clear();
   };
 
   const value = {

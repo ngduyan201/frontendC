@@ -4,6 +4,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import logo from '../assets/imgs/logo.png';
 import backgroundImg from '../assets/imgs/bg4.jpg';
 import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
 import { toast } from 'react-toastify';
 
 const Layout = () => {
@@ -17,32 +18,20 @@ const Layout = () => {
 
   const handleLogoutConfirm = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Lỗi khi đăng xuất');
-      }
-
-      // Xóa thông tin đăng nhập
-      localStorage.clear();
-      // Cập nhật context
+      await authService.logout();
       authLogout();
-      
       setShowModal(false);
+      navigate('/', { replace: true });
       toast.success('Đăng xuất thành công');
-      navigate('/');
-      
     } catch (error) {
-      console.error('Lỗi đăng xuất:', error);
-      toast.error(error.message || 'Có lỗi xảy ra khi đăng xuất');
+      console.error('Logout error:', error);
+      authLogout();
       setShowModal(false);
+      if (error.response?.status === 401) {
+        toast.error('Phiên đăng nhập đã hết hạn. Bạn đã được đăng xuất.');
+      } else {
+        toast.error('Không thể đăng xuất. Vui lòng thử lại sau.');
+      }
     }
   };
 

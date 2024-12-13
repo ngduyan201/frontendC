@@ -31,22 +31,26 @@ const AccountPage = () => {
   const fetchUserProfile = async () => {
     try {
       setIsLoading(true);
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          const response = await userService.getProfile();
-          if (response.success && response.user) {
-            setUserInfo(response.user);
-            break;
-          }
-          retries--;
-        } catch (error) {
-          if (retries === 0) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+      console.log('Fetching user profile...'); // Debug log
+      
+      const response = await userService.getProfile();
+      console.log('Profile data received:', response); // Debug log
+
+      if (response.success && response.user) {
+        // Format dates before setting state
+        const formattedUser = {
+          ...response.user,
+          birthDate: response.user.birthDate ? response.user.birthDate.split('T')[0] : '',
+          createdAt: new Date(response.user.createdAt).toLocaleString('vi-VN'),
+          updatedAt: new Date(response.user.updatedAt).toLocaleString('vi-VN')
+        };
+        
+        console.log('Formatted user data:', formattedUser); // Debug log
+        setUserInfo(formattedUser);
       }
     } catch (error) {
-      toast.error('Không thể tải thông tin người dùng');
+      console.error('FetchProfile Error:', error);
+      toast.error(error.message || 'Không thể tải thông tin người dùng');
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +58,8 @@ const AccountPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log('Current token:', token?.substring(0, 20) + '...'); // Debug log
+    
     if (!token) {
       toast.error('Vui lòng đăng nhập để xem thông tin');
       return;

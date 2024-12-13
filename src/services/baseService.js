@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authService } from './authService';
 
 export const createApiInstance = () => {
   const instance = axios.create({
@@ -38,54 +39,38 @@ export const createApiInstance = () => {
     async (error) => {
       const originalRequest = error.config;
 
-      // Bỏ qua refresh token cho API đổi mật khẩu
-      if (originalRequest.url.includes('/change-password')) {
-        return Promise.reject(error);
-      }
-
-      // Xử lý refresh token cho các API khác
       if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
         if (isRefreshing) {
-          try {
-            const token = await new Promise((resolve, reject) => {
-              failedQueue.push({ resolve, reject });
-            });
-            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          // Nếu đang refresh, thêm request vào hàng đợi
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          }).then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
             return instance(originalRequest);
-          } catch (err) {
-            return Promise.reject(err);
-          }
+          }).catch(err => Promise.reject(err));
         }
 
-        originalRequest._retry = true;
         isRefreshing = true;
 
         try {
-          const refreshToken = localStorage.getItem('refreshToken');
-          if (!refreshToken) {
-            throw new Error('No refresh token available');
-          }
+          const newToken = await authService.refreshToken();
+          processQueue(null, newToken);
 
-          const response = await instance.post('/auth/refresh-token', {
-            refreshToken
-          });
-
-          const { token, newRefreshToken } = response.data;
-          localStorage.setItem('token', token);
-          localStorage.setItem('refreshToken', newRefreshToken);
-
-          originalRequest.headers['Authorization'] = `Bearer ${token}`;
-          processQueue(null, token);
-          
+          // Cập nhật token cho request hiện tại
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return instance(originalRequest);
         } catch (refreshError) {
           processQueue(refreshError, null);
           
-          // Chỉ logout khi thực sự cần thiết
+          // Chỉ logout nếu lỗi liên quan đến xác thực
           if (refreshError.response?.status === 401) {
-            localStorage.clear();
-            window.location.href = '/';
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
           }
+          
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
