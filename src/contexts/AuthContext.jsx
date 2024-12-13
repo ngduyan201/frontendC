@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -14,16 +16,19 @@ export const AuthProvider = ({ children }) => {
         
         if (token && refreshToken) {
           // Thử refresh token khi khởi động
-          await authService.refreshToken();
-          
+          const newToken = await authService.refreshToken();
           const storedUser = localStorage.getItem('user');
+
           if (storedUser) {
             setUser(JSON.parse(storedUser));
           }
+
+          // Lưu token mới
+          localStorage.setItem('token', newToken);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Xóa thông tin đăng nhập nếu có lỗi
+        setAuthError('Phiên đăng nhập đã hết hạn hoặc không hợp lệ.');
         logout();
       } finally {
         setIsLoading(false);
@@ -33,22 +38,32 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = (userData) => {
-    console.log('Login function called with:', userData);
+  const login = (userData, accessToken, refreshToken) => {
+    console.log('Login function called with:', {
+      userData,
+      accessToken,
+      refreshToken
+    });
+    
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.clear();
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
   };
 
   const value = {
     user,
     login,
     logout,
-    isLoading
+    isLoading,
+    authError,
   };
 
   return (

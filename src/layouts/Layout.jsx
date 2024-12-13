@@ -18,15 +18,24 @@ const Layout = () => {
 
   const handleLogoutConfirm = async () => {
     try {
+      console.log('Token before logout:', localStorage.getItem('token'));
+      console.log('Refresh token before logout:', localStorage.getItem('refreshToken'));
+
       await authService.logout();
+
       authLogout();
+
       setShowModal(false);
       navigate('/', { replace: true });
+
       toast.success('Đăng xuất thành công');
     } catch (error) {
       console.error('Logout error:', error);
+
       authLogout();
+
       setShowModal(false);
+
       if (error.response?.status === 401) {
         toast.error('Phiên đăng nhập đã hết hạn. Bạn đã được đăng xuất.');
       } else {

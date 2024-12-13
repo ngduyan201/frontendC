@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import enterImg from '../../assets/imgs/enter.png';
 import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services/authService';
 
 function LoginForm() {
   const { login } = useAuth();
@@ -40,37 +41,30 @@ function LoginForm() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await authService.login(formData);
+      console.log('Login successful:', response);
 
-      const data = await response.json();
+      // Kiểm tra accessToken thay vì token
+      const storedToken = localStorage.getItem('token');
+      const storedRefreshToken = localStorage.getItem('refreshToken');
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Đăng nhập thất bại');
+      if (!storedToken || !storedRefreshToken) {
+        throw new Error('AccessToken hoặc RefreshToken không được lưu đúng cách');
       }
 
-      // Lưu token
-      localStorage.setItem('token', data.token);
-      
-      // Sử dụng context để đăng nhập
-      await login(data.user);
-      
-      // Hiển thị thông báo thành công
+      // Login với user data
+      login(response.user, response.accessToken, response.refreshToken);
+
       setSuccessMessage('Đăng nhập thành công!');
       
-      // Đợi 1.5 giây trước khi chuyển hướng
       setTimeout(() => {
         navigate('/homepage');
       }, 1500);
 
     } catch (error) {
-      console.error('Lỗi đăng nhập:', error);
-      setErrorMessage(error.message);
+      console.error('Login error:', error);
+      setErrorMessage(error.response?.data?.message || error.message || 'Đăng nhập thất bại');
+      localStorage.clear();
     } finally {
       setIsLoading(false);
     }
