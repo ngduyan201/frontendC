@@ -66,9 +66,24 @@ export const authService = {
   },
 
   logout: async () => {
-    await axiosInstance.post('/auth/logout');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    try {
+      // 1. Gọi API logout để xóa refresh token ở backend
+      await axiosInstance.post('/auth/logout', {}, {
+        withCredentials: true
+      });
+
+      // 2. Xóa access token và user info ở frontend
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+
+      // 3. Reset axios instance (optional)
+      axiosInstance.defaults.headers.common['Authorization'] = '';
+
+      return { success: true };
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
   },
 
   getAccessToken: () => localStorage.getItem('accessToken'),

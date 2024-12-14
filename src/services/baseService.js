@@ -29,26 +29,28 @@ export const createApiInstance = () => {
       const originalRequest = error.config;
 
       if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });
-          });
+          })
+            .then(token => {
+              return instance(originalRequest);
+            })
+            .catch(err => Promise.reject(err));
         }
 
         isRefreshing = true;
+        originalRequest._retry = true;
 
         try {
           const response = await instance.post('/auth/refresh-token');
-          processQueue(null);
+          isRefreshing = false;
+          processQueue(null, response.data.accessToken);
           return instance(originalRequest);
         } catch (refreshError) {
-          processQueue(refreshError, null);
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
-        } finally {
           isRefreshing = false;
+          processQueue(refreshError, null);
+          throw refreshError;
         }
       }
       return Promise.reject(error);
