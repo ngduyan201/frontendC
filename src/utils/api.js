@@ -1,25 +1,18 @@
 import { API_BASE_URL } from '../config/apiConfig';
 import { toast } from 'react-toastify';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
-  };
-};
-
 export const api = {
   get: async (url) => {
     try {
-      console.log('GET Request to:', `${API_BASE_URL}${url}`);
       const response = await fetch(`${API_BASE_URL}${url}`, {
-        headers: getAuthHeaders(),
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('GET Error:', errorData);
         toast.error(errorData.message || 'Có lỗi xảy ra');
         throw errorData;
       }
@@ -33,18 +26,17 @@ export const api = {
 
   post: async (url, data) => {
     try {
-      console.log('POST Request to:', `${API_BASE_URL}${url}`);
-      console.log('POST Data:', data);
-      
       const response = await fetch(`${API_BASE_URL}${url}`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('POST Error:', errorData);
         toast.error(errorData.message || 'Có lỗi xảy ra');
         throw errorData;
       }
@@ -63,8 +55,10 @@ export const api = {
       
       const response = await fetch(`${API_BASE_URL}${url}`, {
         method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
       });
       
       if (!response.ok) {
@@ -87,7 +81,10 @@ export const api = {
       
       const response = await fetch(`${API_BASE_URL}${url}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
       
       if (!response.ok) {

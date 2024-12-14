@@ -5,15 +5,7 @@ import { userService } from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
 
 const AccountPage = () => {
-  const [userInfo, setUserInfo] = useState({
-    fullName: '',
-    birthDate: '',
-    occupation: 'Khác',
-    phone: '',
-    createdAt: '',
-    updatedAt: ''
-  });
-
+  const [userInfo, setUserInfo] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPWModal, setShowPWModal] = useState(false);
@@ -28,44 +20,23 @@ const AccountPage = () => {
     }
   };
 
-  const fetchUserProfile = async () => {
-    try {
-      setIsLoading(true);
-      console.log('Fetching user profile...'); // Debug log
-      
-      const response = await userService.getProfile();
-      console.log('Profile data received:', response); // Debug log
-
-      if (response.success && response.user) {
-        // Format dates before setting state
-        const formattedUser = {
-          ...response.user,
-          birthDate: response.user.birthDate ? response.user.birthDate.split('T')[0] : '',
-          createdAt: new Date(response.user.createdAt).toLocaleString('vi-VN'),
-          updatedAt: new Date(response.user.updatedAt).toLocaleString('vi-VN')
-        };
-        
-        console.log('Formatted user data:', formattedUser); // Debug log
-        setUserInfo(formattedUser);
-      }
-    } catch (error) {
-      console.error('FetchProfile Error:', error);
-      toast.error(error.message || 'Không thể tải thông tin người dùng');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    console.log('Current token:', token?.substring(0, 20) + '...'); // Debug log
-    
-    if (!token) {
-      toast.error('Vui lòng đăng nhập để xem thông tin');
-      return;
-    }
     fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await userService.getProfile();
+      if (response.success) {
+        setUserInfo({
+          ...response.user,
+          birthDate: formatDate(response.user.birthDate)
+        });
+      }
+    } catch (error) {
+      toast.error('Không thể tải thông tin người dùng');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

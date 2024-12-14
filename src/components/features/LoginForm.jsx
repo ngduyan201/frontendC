@@ -40,31 +40,21 @@ function LoginForm() {
     }
 
     setIsLoading(true);
+    
     try {
       const response = await authService.login(formData);
-      console.log('Login successful:', response);
-
-      // Kiểm tra accessToken thay vì token
-      const storedToken = localStorage.getItem('token');
-      const storedRefreshToken = localStorage.getItem('refreshToken');
-
-      if (!storedToken || !storedRefreshToken) {
-        throw new Error('AccessToken hoặc RefreshToken không được lưu đúng cách');
-      }
-
-      // Login với user data
-      login(response.user, response.accessToken, response.refreshToken);
-
-      setSuccessMessage('Đăng nhập thành công!');
       
-      setTimeout(() => {
-        navigate('/homepage');
-      }, 1500);
-
+      if (response.success) {
+        login(response.user);
+        setSuccessMessage('Đăng nhập thành công!');
+        
+        setTimeout(() => {
+          navigate('/homepage');
+        }, 1500);
+      }
     } catch (error) {
       console.error('Login error:', error);
-      setErrorMessage(error.response?.data?.message || error.message || 'Đăng nhập thất bại');
-      localStorage.clear();
+      setErrorMessage(error.response?.data?.message || 'Đăng nhập thất bại');
     } finally {
       setIsLoading(false);
     }
