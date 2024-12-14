@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { userService } from '../../services/userService';
+import userService from '../../services/userService';
+import { toast } from 'react-toastify';
 
 const ChangePasswordModal = ({ show, onClose }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +10,6 @@ const ChangePasswordModal = ({ show, onClose }) => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const resetForm = () => {
@@ -19,7 +19,6 @@ const ChangePasswordModal = ({ show, onClose }) => {
       confirmPassword: ''
     });
     setError('');
-    setSuccess('');
     setIsLoading(false);
   };
 
@@ -40,7 +39,6 @@ const ChangePasswordModal = ({ show, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
 
     // Validation
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
@@ -66,21 +64,23 @@ const ChangePasswordModal = ({ show, onClose }) => {
     try {
       setIsLoading(true);
       const response = await userService.changePassword({
-        currentPassword: formData.currentPassword,
+        oldPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });
 
-      // Kiểm tra response
-      console.log('Change password response:', response);
-
-      setSuccess(response.message || 'Đổi mật khẩu thành công');
-      setTimeout(() => {
-        onClose();
-        resetForm();
-      }, 1500);
+      if (response.success) {
+        toast.success('Đổi mật khẩu thành công');
+        handleClose();
+      } else {
+        setError(response.message || 'Có lỗi xảy ra khi đổi mật khẩu');
+      }
     } catch (error) {
       console.error('Change password error:', error);
-      setError(error.message || 'Lỗi khi đổi mật khẩu');
+      if (error.code === 'ERR_NETWORK') {
+        setError('Không thể kết nối đến server. Vui lòng kiểm tra kết nối và thử lại.');
+      } else {
+        setError(error.message || 'Có lỗi xảy ra khi đổi mật khẩu');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +131,6 @@ const ChangePasswordModal = ({ show, onClose }) => {
           </FormGroup>
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
-          {success && <SuccessMessage>{success}</SuccessMessage>}
 
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? 'Đang xử lý...' : 'Xác nhận'}
@@ -261,16 +260,6 @@ const ErrorMessage = styled.div`
   background-color: #fff5f5;
   border-radius: 6px;
   border: 1px solid #ffebeb;
-`;
-
-const SuccessMessage = styled.div`
-  color: #28a745;
-  font-size: 0.9rem;
-  margin-top: 8px;
-  padding: 8px 12px;
-  background-color: #f4fff4;
-  border-radius: 6px;
-  border: 1px solid #ebffeb;
 `;
 
 export default ChangePasswordModal; 

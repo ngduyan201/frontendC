@@ -5,6 +5,7 @@ import logo from '../assets/imgs/logo.png';
 import LoginForm from '../components/features/LoginForm'; // Import LoginForm
 import RegisterForm from '../components/features/RegisterForm'; // Import RegisterForm
 import { toast } from 'react-toastify'; // Import toast for notifications
+import { useAuth } from '../contexts/AuthContext';
 
 function FirstPage() {
   const [activeForm, setActiveForm] = useState(null); // Quản lý trạng thái form đang hiển thị
@@ -13,6 +14,7 @@ function FirstPage() {
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false); // Trạng thái hiển thị thông báo Xin chào
 
   const navigate = useNavigate();
+  const { isLoginLoading } = useAuth();
 
   // Hàm chuyển đổi form
   const handleFormToggle = (form) => {
@@ -61,6 +63,15 @@ function FirstPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-r from-[#0097b2] to-[#7ed957]">
+      {isLoginLoading ? (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+            <p>Đang đăng nhập...</p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Phần trái */}
       <div className="w-1/2 bg-white flex flex-col justify-center items-center py-16">
         {/* Logo */}

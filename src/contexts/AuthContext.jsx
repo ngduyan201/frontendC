@@ -1,11 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
 
   // Hàm kiểm tra và refresh token
   const checkAuth = async () => {
@@ -45,9 +47,30 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = async (userData) => {
+    try {
+      setIsLoginLoading(true);
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast.success('Đăng nhập thành công!', {
+        position: "top-right",
+        autoClose: 500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Có lỗi xảy ra khi đăng nhập');
+    } finally {
+      setIsLoginLoading(false);
+    }
   };
 
   const logout = async () => {
@@ -62,7 +85,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      currentUser: user,
+      user,
+      login, 
+      logout, 
+      isLoading,
+      isLoginLoading
+    }}>
       {!isLoading && children}
     </AuthContext.Provider>
   );

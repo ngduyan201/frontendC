@@ -1,11 +1,15 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import FirstPage from './pages/FirstPage';
 import Homepage from './pages/Homepage';
 import SinglePlay from './pages/SinglePlay';
 import CreatePage from './pages/CreatePage';
 import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Lazy load các trang không cần thiết ngay lập tức
 const Library = lazy(() => import('./pages/Library'));
@@ -22,19 +26,44 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ToastContainer />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* FirstPage không sử dụng Layout */}
-            <Route path="/" element={<FirstPage />} />
+            {/* Public route - Trang đăng nhập */}
+            <Route path="/" element={
+              <PublicRoute>
+                <FirstPage />
+              </PublicRoute>
+            } />
             
-            {/* Các trang không sử dụng Layout chung */}
-            <Route path="play" element={<SinglePlay />} />
-            <Route path="team-play" element={<TeamPlay />} />
-            <Route path="code-play" element={<CodePlay />} />
-            <Route path="create" element={<CreatePage />} />
+            {/* Protected routes */}
+            <Route path="play" element={
+              <ProtectedRoute>
+                <SinglePlay />
+              </ProtectedRoute>
+            } />
+            <Route path="team-play" element={
+              <ProtectedRoute>
+                <TeamPlay />
+              </ProtectedRoute>
+            } />
+            <Route path="code-play" element={
+              <ProtectedRoute>
+                <CodePlay />
+              </ProtectedRoute>
+            } />
+            <Route path="create" element={
+              <ProtectedRoute>
+                <CreatePage />
+              </ProtectedRoute>
+            } />
             
-            {/* Các trang sử dụng Layout */}
-            <Route element={<Layout />}>
+            {/* Các trang sử dụng Layout - đều là protected */}
+            <Route element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
               <Route path="homepage" element={<Homepage />} />
               <Route path="library" element={<Library />} />
               <Route path="guide" element={<GuidePage />} />

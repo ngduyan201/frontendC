@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
-import { userService } from '../services/userService';
+import userService from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
 
 const AccountPage = () => {
@@ -26,15 +26,21 @@ const AccountPage = () => {
 
   const fetchUserProfile = async () => {
     try {
+      setIsLoading(true);
       const response = await userService.getProfile();
       if (response.success) {
         setUserInfo({
-          ...response.user,
-          birthDate: formatDate(response.user.birthDate)
+          ...response.data,
+          createdAt: formatDate(response.data.createdAt),
+          updatedAt: formatDate(response.data.updatedAt)
         });
+      } else {
+        toast.error('Không thể tải thông tin người dùng');
       }
     } catch (error) {
-      toast.error('Không thể tải thông tin người dùng');
+      toast.error(error.message || 'Đã có lỗi xảy ra');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,36 +58,35 @@ const AccountPage = () => {
 
   const handleSaveClick = async () => {
     try {
-      setIsLoading(true);
-
-      if (userInfo.phone && !/^\d{10}$/.test(userInfo.phone)) {
-        toast.error('Số điện thoại không hợp lệ');
+      // Validate dữ liệu
+      if (!userInfo.fullName?.trim()) {
+        toast.error('Vui lòng nhập họ và tên');
+        return;
+      }
+      if (!userInfo.email?.trim()) {
+        toast.error('Vui lòng nhập email');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
+        toast.error('Email không hợp lệ');
         return;
       }
 
-      const dataToUpdate = {
-        fullName: userInfo.fullName.trim(),
-        birthDate: userInfo.birthDate,
-        occupation: userInfo.occupation,
-        phone: userInfo.phone.trim()
-      };
+      setIsLoading(true);
+      const response = await userService.updateProfile({
+        fullName: userInfo.fullName,
+        email: userInfo.email,
+        phone: userInfo.phone || ''
+      });
 
-      const response = await userService.updateProfile(dataToUpdate);
-
-      if (response.success && response.user) {
-        const updatedUser = {
-          ...response.user,
-          birthDate: formatDate(response.user.birthDate)
-        };
-        setUserInfo(updatedUser);
-        setIsEditing(false);
+      if (response.success) {
         toast.success('Cập nhật thông tin thành công');
+        setIsEditing(false);
       } else {
-        throw new Error(response.message || 'Không thể cập nhật thông tin');
+        toast.error(response.message || 'Cập nhật thất bại');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error(error.message || 'Lỗi khi cập nhật thông tin');
+      toast.error(error.message || 'Đã có lỗi xảy ra');
     } finally {
       setIsLoading(false);
     }
@@ -94,107 +99,111 @@ const AccountPage = () => {
 
   return (
     <PageContainer>
-      <ContentWrapper>
-        <CrosswordList>
-          <SectionTitle>Danh sách ô chữ của tôi</SectionTitle>
-          {/* Component danh sách ô chữ */}
-        </CrosswordList>
+      {isLoading ? (
+        <LoadingSpinner>Đang tải...</LoadingSpinner>
+      ) : (
+        <ContentWrapper>
+          <CrosswordList>
+            <SectionTitle>Danh sách ô chữ của tôi</SectionTitle>
+            {/* Component danh sách ô chữ */}
+          </CrosswordList>
 
-        <AccountInfo>
-          <SectionTitle>Thông tin tài khoản</SectionTitle>
-          
-          <InfoGroup>
-            <Label>Họ và tên</Label>
-            <Input
-              name="fullName"
-              value={userInfo.fullName}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="Nhập họ và tên"
-            />
-          </InfoGroup>
+          <AccountInfo>
+            <SectionTitle>Thông tin tài khoản</SectionTitle>
+            
+            <InfoGroup>
+              <Label>Họ và tên</Label>
+              <Input
+                name="fullName"
+                value={userInfo.fullName}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="Nhập họ và tên"
+              />
+            </InfoGroup>
 
-          <InfoGroup>
-            <Label>Ngày sinh</Label>
-            <Input
-              type="date"
-              name="birthDate"
-              value={userInfo.birthDate}
-              onChange={handleChange}
-              disabled={!isEditing}
-              max={new Date().toISOString().split('T')[0]}
-            />
-          </InfoGroup>
+            <InfoGroup>
+              <Label>Ngày sinh</Label>
+              <Input
+                type="date"
+                name="birthDate"
+                value={userInfo.birthDate}
+                onChange={handleChange}
+                disabled={!isEditing}
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </InfoGroup>
 
-          <InfoGroup>
-            <Label>Nghề nghiệp</Label>
-            <Select
-              name="occupation"
-              value={userInfo.occupation}
-              onChange={handleChange}
-              disabled={!isEditing}
-            >
-              <option value="Giáo viên">Giáo viên</option>
-              <option value="Học sinh">Học sinh</option>
-              <option value="Sinh viên">Sinh viên</option>
-              <option value="Khác">Khác</option>
-            </Select>
-          </InfoGroup>
+            <InfoGroup>
+              <Label>Nghề nghiệp</Label>
+              <Select
+                name="occupation"
+                value={userInfo.occupation}
+                onChange={handleChange}
+                disabled={!isEditing}
+              >
+                <option value="Giáo viên">Giáo viên</option>
+                <option value="Học sinh">Học sinh</option>
+                <option value="Sinh viên">Sinh viên</option>
+                <option value="Khác">Khác</option>
+              </Select>
+            </InfoGroup>
 
-          <InfoGroup>
-            <Label>Số điện thoại</Label>
-            <Input
-              name="phone"
-              value={userInfo.phone}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="Nhập số điện thoại"
-            />
-          </InfoGroup>
+            <InfoGroup>
+              <Label>Số điện thoại</Label>
+              <Input
+                name="phone"
+                value={userInfo.phone}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="Nhập số điện thoại"
+              />
+            </InfoGroup>
 
-          <InfoGroup>
-            <Label>Ngày tạo tài khoản</Label>
-            <Input value={userInfo.createdAt} disabled />
-          </InfoGroup>
+            <InfoGroup>
+              <Label>Ngày tạo tài khoản</Label>
+              <Input value={userInfo.createdAt} disabled />
+            </InfoGroup>
 
-          <InfoGroup>
-            <Label>Cập nhật lần cuối</Label>
-            <Input value={userInfo.updatedAt} disabled />
-          </InfoGroup>
+            <InfoGroup>
+              <Label>Cập nhật lần cuối</Label>
+              <Input value={userInfo.updatedAt} disabled />
+            </InfoGroup>
 
-          <ButtonGroup>
-            {isEditing ? (
-              <>
-                <SaveButton 
-                  onClick={handleSaveClick}
+            <ButtonGroup>
+              {isEditing ? (
+                <>
+                  <SaveButton 
+                    onClick={handleSaveClick}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Đang lưu...' : 'Lưu lại'}
+                  </SaveButton>
+                  <CancelButton 
+                    onClick={handleCancelEdit}
+                    disabled={isLoading}
+                  >
+                    Hủy
+                  </CancelButton>
+                </>
+              ) : (
+                <EditButton 
+                  onClick={handleEditClick}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Đang lưu...' : 'Lưu lại'}
-                </SaveButton>
-                <CancelButton 
-                  onClick={handleCancelEdit}
-                  disabled={isLoading}
-                >
-                  Hủy
-                </CancelButton>
-              </>
-            ) : (
-              <EditButton 
-                onClick={handleEditClick}
+                  Chỉnh sửa
+                </EditButton>
+              )}
+              <ChangePasswordButton 
+                onClick={() => setShowPWModal(true)}
                 disabled={isLoading}
               >
-                Chỉnh sửa
-              </EditButton>
-            )}
-            <ChangePasswordButton 
-              onClick={() => setShowPWModal(true)}
-              disabled={isLoading}
-            >
-              Đổi mật khẩu
-            </ChangePasswordButton>
-          </ButtonGroup>
-        </AccountInfo>
-      </ContentWrapper>
+                Đổi mật khẩu
+              </ChangePasswordButton>
+            </ButtonGroup>
+          </AccountInfo>
+        </ContentWrapper>
+      )}
 
       <ChangePasswordModal 
         show={showPWModal} 
@@ -263,16 +272,21 @@ const Label = styled.label`
 
 const Input = styled.input`
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid ${props => props.disabled ? '#ddd' : '#aaa'};
+  padding: 10px;
+  border: 1px solid ${props => props.disabled ? '#ddd' : '#ccc'};
   border-radius: 6px;
+  font-size: 1rem;
   background-color: ${props => props.disabled ? '#f5f5f5' : 'white'};
-  font-size: 0.9rem;
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
     border-color: #2196F3;
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  }
+
+  &::placeholder {
+    color: #999;
   }
 `;
 
@@ -293,10 +307,13 @@ const Select = styled.select`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #eee;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-end;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const Button = styled.button`
