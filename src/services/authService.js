@@ -71,7 +71,35 @@ export const authService = {
     localStorage.removeItem('user');
   },
 
-  getAccessToken: () => localStorage.getItem('accessToken')
+  getAccessToken: () => localStorage.getItem('accessToken'),
+
+  refreshToken: async () => {
+    try {
+      const response = await axiosInstance.post('/auth/refresh-token', {}, {
+        withCredentials: true
+      });
+      
+      if (response.data.success) {
+        // Lưu access token mới
+        localStorage.setItem('accessToken', response.data.accessToken);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Refresh token error:', error);
+      throw error;
+    }
+  },
+
+  // Thêm method kiểm tra trạng thái auth
+  checkAuthStatus: async () => {
+    try {
+      const response = await axiosInstance.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default authService;

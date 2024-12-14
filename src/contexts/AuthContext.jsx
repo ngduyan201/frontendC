@@ -7,31 +7,42 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        // Chỉ thực hiện refresh token nếu có user trong localStorage
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const response = await authService.refreshToken();
-          if (response.success) {
-            setUser(JSON.parse(storedUser));
-          }
+  // Hàm kiểm tra và refresh token
+  const checkAuth = async () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedUser) {
+        // Gọi API để verify và refresh token
+        const response = await authService.refreshToken();
+        
+        if (response.success) {
+          // Cập nhật access token mới
+          localStorage.setItem('accessToken', response.accessToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          // Nếu refresh thất bại, xóa thông tin cũ
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        // Xóa user từ localStorage nếu refresh thất bại
-        localStorage.removeItem('user');
-        setUser(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    initAuth();
+  // Chạy kiểm tra khi component mount
+  useEffect(() => {
+    checkAuth();
   }, []);
 
-  const login = async (userData) => {
+  const login = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
   };
@@ -39,32 +50,17 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
-  const register = async (userData) => {
-    try {
-      const response = await authService.register(userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    login,
-    logout,
-    register,
-    isLoading,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
-      {children}
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 };
