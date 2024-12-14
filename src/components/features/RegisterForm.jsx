@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import enterImg from '../../assets/imgs/enter.png';
 import { authService } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 function RegisterForm({ onSubmit }) {
   const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ function RegisterForm({ onSubmit }) {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -50,14 +53,18 @@ function RegisterForm({ onSubmit }) {
       };
       
       const response = await authService.register(userData);
-
-      if (onSubmit) {
-        onSubmit(response.user);
+      
+      if (response.success) {
+        setSuccessMessage('Đăng ký thành công!');
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       }
 
     } catch (error) {
       console.error('Lỗi đăng ký:', error);
-      setErrorMessage(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.');
+      setErrorMessage(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký');
     } finally {
       setIsLoading(false);
     }

@@ -3,66 +3,75 @@ import { API_BASE_URL } from '../config/apiConfig';
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  withCredentials: true
 });
 
-// Interceptor chỉ log thông tin an toàn
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // Log an toàn không có password
-    const safeData = { ...config.data };
-    if (safeData.password) {
-      safeData.password = '[HIDDEN]';
+// Interceptor để tự động refresh token
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Gọi API refresh token
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        // Cập nhật access token mới
+        const { accessToken } = response.data;
+        localStorage.setItem('accessToken', accessToken);
+
+        // Thêm token mới vào header và thử lại request
+        originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+        return axios(originalRequest);
+      } catch (error) {
+        // Nếu refresh token cũng hết hạn, chuyển về trang login
+        localStorage.removeItem('accessToken');
+        window.location.href = '/';
+        return Promise.reject(error);
+      }
     }
-    
-    console.log('Request Config:', {
-      url: config.url,
-      method: config.method,
-      withCredentials: config.withCredentials,
-      headers: config.headers,
-      data: safeData // Log data đã được sanitize
-    });
-    return config;
-  },
-  (error) => Promise.reject(error)
+
+    return Promise.reject(error);
+  }
 );
 
 export const authService = {
   login: async (credentials) => {
     try {
-      // Không log credentials
       const response = await axiosInstance.post('/auth/login', credentials);
-      return response.data;
+      const { accessToken, user } = response.data;
+      
+      if (response.data.success) { // Kiểm tra success
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('user', JSON.stringify(user));
+        return response.data;
+      } else {
+        throw new Error(response.data.message);
+      }
     } catch (error) {
-      console.error('Login error:', {
-        status: error.response?.status,
-        message: error.message
-      });
       throw error;
     }
   },
 
-  refreshToken: async () => {
-    try {
-      const response = await axiosInstance.post('/auth/refresh-token');
-      return response.data;
-    } catch (error) {
-      console.error('Refresh token error:', error);
-      throw error;
-    }
+  register: async (userData) => {
+    const response = await axiosInstance.post('/auth/register', userData);
+    return response.data;
   },
 
   logout: async () => {
-    try {
-      await axiosInstance.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
-  }
+    await axiosInstance.post('/auth/logout');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+  },
+
+  getAccessToken: () => localStorage.getItem('accessToken')
 };
 
 export default authService;

@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     setUser(userData);
-    // Không cần lưu token vào localStorage nữa
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = async () => {
@@ -45,10 +45,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
+    register,
     isLoading,
   };
 
