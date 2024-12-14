@@ -9,26 +9,29 @@ export const AuthProvider = ({ children }) => {
 
   // Hàm kiểm tra và refresh token
   const checkAuth = async () => {
+    console.log('🔄 Checking authentication state...');
     try {
       const storedUser = localStorage.getItem('user');
       
       if (storedUser) {
-        // Gọi API để verify và refresh token
+        console.log('📍 Found stored user, attempting to refresh token...');
         const response = await authService.refreshToken();
         
         if (response.success) {
-          // Cập nhật access token mới
+          console.log('✅ Token refresh successful');
           localStorage.setItem('accessToken', response.accessToken);
           setUser(JSON.parse(storedUser));
         } else {
-          // Nếu refresh thất bại, xóa thông tin cũ
+          console.log('❌ Token refresh failed');
           localStorage.removeItem('user');
           localStorage.removeItem('accessToken');
           setUser(null);
         }
+      } else {
+        console.log('ℹ️ No stored user found');
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('🚫 Auth check failed:', error);
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       setUser(null);

@@ -74,19 +74,20 @@ export const authService = {
   getAccessToken: () => localStorage.getItem('accessToken'),
 
   refreshToken: async () => {
+    console.log('🔄 Calling refresh token API...');
     try {
       const response = await axiosInstance.post('/auth/refresh-token', {}, {
         withCredentials: true
       });
       
       if (response.data.success) {
-        // Lưu access token mới
+        console.log('✅ New access token received');
         localStorage.setItem('accessToken', response.data.accessToken);
       }
       
       return response.data;
     } catch (error) {
-      console.error('Refresh token error:', error);
+      console.error('🚫 Refresh token error:', error);
       throw error;
     }
   },
