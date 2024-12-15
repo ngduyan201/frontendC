@@ -9,9 +9,9 @@ export const API_URLS = {
   },
   
   USER: {
-    PROFILE: '/users/profile',
-    UPDATE_PROFILE: '/users/profile/update',
-    CHANGE_PASSWORD: '/users/change-password',
+    PROFILE: '/user/profile',
+    UPDATE_PROFILE: '/user/profile',
+    CHANGE_PASSWORD: '/user/change-password',
   },
 
   CROSSWORDS: {

@@ -50,11 +50,12 @@ export const api = {
 
   put: async (url, data) => {
     try {
-      console.log('PUT Request to:', `${API_BASE_URL}${url}`);
-      console.log('PUT Data:', data);
+      console.log('Making PUT request to:', `${API_BASE_URL}${url}`);
+      console.log('With data:', data);
       
       const response = await fetch(`${API_BASE_URL}${url}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -64,7 +65,6 @@ export const api = {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('PUT Error:', errorData);
-        toast.error(errorData.message || 'Có lỗi xảy ra');
         throw errorData;
       }
       

@@ -3,17 +3,54 @@ import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import userService from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
+import { useAuth } from '../contexts/AuthContext';
+
+const VALID_OCCUPATIONS = ['Giáo viên', 'Học sinh', 'Sinh viên', 'Khác'];
 
 const AccountPage = () => {
-  const [userInfo, setUserInfo] = useState({});
+  const { user, fetchUserProfile } = useAuth();
+  const [userInfo, setUserInfo] = useState({
+    fullName: '',
+    birthDate: '',
+    occupation: '',
+    phone: '',
+    createdAt: '',
+    updatedAt: ''
+  });
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [showPWModal, setShowPWModal] = useState(false);
+  const [originalUserInfo, setOriginalUserInfo] = useState({
+    fullName: '',
+    birthDate: '',
+    occupation: '',
+    phone: '',
+    createdAt: '',
+    updatedAt: ''
+  });
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
+    
     try {
-      return dateString.split('T')[0];
+      // Nếu dateString là định dạng locale từ backend (19:41:09 15/12/2024)
+      if (dateString.includes('/')) {
+        return dateString;
+      }
+      
+      // Nếu là định dạng ISO hoặc timestamp
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      
+      return date.toLocaleString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     } catch (error) {
       console.error('Error formatting date:', error);
       return '';
@@ -21,28 +58,39 @@ const AccountPage = () => {
   };
 
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
+    let isMounted = true;
 
-  const fetchUserProfile = async () => {
-    try {
-      setIsLoading(true);
-      const response = await userService.getProfile();
-      if (response.success) {
-        setUserInfo({
-          ...response.data,
-          createdAt: formatDate(response.data.createdAt),
-          updatedAt: formatDate(response.data.updatedAt)
-        });
-      } else {
-        toast.error('Không thể tải thông tin người dùng');
+    const initializeData = async () => {
+      try {
+        setIsLoadingProfile(true);
+        
+        if (!user?.fullName) {
+          await fetchUserProfile();
+        } else if (isMounted) {
+          const formattedData = {
+            fullName: user.fullName || '',
+            birthDate: user.birthDate || '',
+            occupation: user.occupation || '',
+            phone: user.phone || '',
+            createdAt: formatDate(user.createdAt) || '',
+            updatedAt: formatDate(user.updatedAt) || ''
+          };
+          setUserInfo(formattedData);
+          setOriginalUserInfo(formattedData);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingProfile(false);
+        }
       }
-    } catch (error) {
-      toast.error(error.message || 'Đã có lỗi xảy ra');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.fullName]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,29 +106,23 @@ const AccountPage = () => {
 
   const handleSaveClick = async () => {
     try {
-      // Validate dữ liệu
-      if (!userInfo.fullName?.trim()) {
-        toast.error('Vui lòng nhập họ và tên');
-        return;
-      }
-      if (!userInfo.email?.trim()) {
-        toast.error('Vui lòng nhập email');
-        return;
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-        toast.error('Email không hợp lệ');
-        return;
-      }
-
-      setIsLoading(true);
+      setIsSavingProfile(true);
       const response = await userService.updateProfile({
         fullName: userInfo.fullName,
-        email: userInfo.email,
+        birthDate: userInfo.birthDate || '',
+        occupation: userInfo.occupation,
         phone: userInfo.phone || ''
       });
 
       if (response.success) {
         toast.success('Cập nhật thông tin thành công');
+        const updatedData = {
+          ...response.data,
+          createdAt: formatDate(response.data.createdAt) || '',
+          updatedAt: formatDate(response.data.updatedAt) || ''
+        };
+        setUserInfo(updatedData);
+        setOriginalUserInfo(updatedData);
         setIsEditing(false);
       } else {
         toast.error(response.message || 'Cập nhật thất bại');
@@ -88,19 +130,30 @@ const AccountPage = () => {
     } catch (error) {
       toast.error(error.message || 'Đã có lỗi xảy ra');
     } finally {
-      setIsLoading(false);
+      setIsSavingProfile(false);
     }
   };
 
   const handleCancelEdit = () => {
-    fetchUserProfile();
-    setIsEditing(false);
+    if (
+      userInfo.fullName !== originalUserInfo.fullName ||
+      userInfo.birthDate !== originalUserInfo.birthDate ||
+      userInfo.occupation !== originalUserInfo.occupation ||
+      userInfo.phone !== originalUserInfo.phone
+    ) {
+      if (window.confirm('Bạn có chắc muốn hủy các thay đổi?')) {
+        setUserInfo(originalUserInfo);
+        setIsEditing(false);
+      }
+    } else {
+      setIsEditing(false);
+    }
   };
 
   return (
     <PageContainer>
-      {isLoading ? (
-        <LoadingSpinner>Đang tải...</LoadingSpinner>
+      {isLoadingProfile ? (
+        <LoadingSpinner>Đang tải thông tin...</LoadingSpinner>
       ) : (
         <ContentWrapper>
           <CrosswordList>
@@ -115,7 +168,7 @@ const AccountPage = () => {
               <Label>Họ và tên</Label>
               <Input
                 name="fullName"
-                value={userInfo.fullName}
+                value={userInfo.fullName || ''}
                 onChange={handleChange}
                 disabled={!isEditing}
                 placeholder="Nhập họ và tên"
@@ -127,7 +180,7 @@ const AccountPage = () => {
               <Input
                 type="date"
                 name="birthDate"
-                value={userInfo.birthDate}
+                value={userInfo.birthDate || ''}
                 onChange={handleChange}
                 disabled={!isEditing}
                 max={new Date().toISOString().split('T')[0]}
@@ -138,14 +191,16 @@ const AccountPage = () => {
               <Label>Nghề nghiệp</Label>
               <Select
                 name="occupation"
-                value={userInfo.occupation}
+                value={userInfo.occupation || ''}
                 onChange={handleChange}
                 disabled={!isEditing}
               >
-                <option value="Giáo viên">Giáo viên</option>
-                <option value="Học sinh">Học sinh</option>
-                <option value="Sinh viên">Sinh viên</option>
-                <option value="Khác">Khác</option>
+                <option value="">Chọn nghề nghiệp</option>
+                {VALID_OCCUPATIONS.map(occupation => (
+                  <option key={occupation} value={occupation}>
+                    {occupation}
+                  </option>
+                ))}
               </Select>
             </InfoGroup>
 
@@ -153,7 +208,7 @@ const AccountPage = () => {
               <Label>Số điện thoại</Label>
               <Input
                 name="phone"
-                value={userInfo.phone}
+                value={userInfo.phone || ''}
                 onChange={handleChange}
                 disabled={!isEditing}
                 placeholder="Nhập số điện thoại"
@@ -162,12 +217,12 @@ const AccountPage = () => {
 
             <InfoGroup>
               <Label>Ngày tạo tài khoản</Label>
-              <Input value={userInfo.createdAt} disabled />
+              <Input value={userInfo.createdAt || ''} disabled />
             </InfoGroup>
 
             <InfoGroup>
               <Label>Cập nhật lần cuối</Label>
-              <Input value={userInfo.updatedAt} disabled />
+              <Input value={userInfo.updatedAt || ''} disabled />
             </InfoGroup>
 
             <ButtonGroup>
@@ -175,13 +230,13 @@ const AccountPage = () => {
                 <>
                   <SaveButton 
                     onClick={handleSaveClick}
-                    disabled={isLoading}
+                    disabled={isSavingProfile}
                   >
-                    {isLoading ? 'Đang lưu...' : 'Lưu lại'}
+                    {isSavingProfile ? 'Đang lưu...' : 'Lưu lại'}
                   </SaveButton>
                   <CancelButton 
                     onClick={handleCancelEdit}
-                    disabled={isLoading}
+                    disabled={isSavingProfile}
                   >
                     Hủy
                   </CancelButton>
@@ -189,14 +244,14 @@ const AccountPage = () => {
               ) : (
                 <EditButton 
                   onClick={handleEditClick}
-                  disabled={isLoading}
+                  disabled={isSavingProfile}
                 >
                   Chỉnh sửa
                 </EditButton>
               )}
               <ChangePasswordButton 
                 onClick={() => setShowPWModal(true)}
-                disabled={isLoading}
+                disabled={isSavingProfile}
               >
                 Đổi mật khẩu
               </ChangePasswordButton>

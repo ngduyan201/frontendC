@@ -8,19 +8,13 @@ import { toast } from 'react-toastify'; // Import toast for notifications
 import { useAuth } from '../contexts/AuthContext';
 
 function FirstPage() {
-  const [activeForm, setActiveForm] = useState(null); // Quản lý trạng thái form đang hiển thị
-  const [isRegisterActive, setIsRegisterActive] = useState(false); // Trạng thái để phóng to nút Đăng ký
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false); // Trạng thái hiển thị thông báo Đăng ký
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false); // Trạng thái hiển thị thông báo Xin chào
-
-  const navigate = useNavigate();
+  const [activeForm, setActiveForm] = useState(null);
+  const [isRegisterActive, setIsRegisterActive] = useState(false);
   const { isLoginLoading } = useAuth();
 
   // Hàm chuyển đổi form
   const handleFormToggle = (form) => {
     setActiveForm(form);
-    setShowSuccessMessage(false); // Ẩn thông báo nếu chuyển form
-    setShowWelcomeMessage(false); // Ẩn thông báo Xin chào nếu chuyển form
     if (form === 'register') {
       setIsRegisterActive(true);
     } else {
@@ -28,37 +22,9 @@ function FirstPage() {
     }
   };
 
-  // Hàm xử lý khi đăng ký thành công
-  const handleRegisterSubmit = () => {
-    setActiveForm(null); // Ẩn form Đăng ký
-    setShowSuccessMessage(true); // Hiển thị thông báo thành công
-  };
-
-  // Hàm xử lý khi nhấn "Đăng nhập ngay"
-  const handleLoginRedirect = () => {
-    setShowSuccessMessage(false); // Ẩn thông báo
-    handleFormToggle('login'); // Chuyển sang form Đăng nhập
-  };
-
-  // Hàm xử lý khi đăng nhập thành công
-  const handleLoginSubmit = async (credentials) => {
-    try {
-      // Assume login API call here
-      const response = await loginApi(credentials);
-      if (response.success) {
-        setActiveForm(null); // Ẩn form Đăng nhập chỉ khi đăng nhập thành công
-        setShowWelcomeMessage(true); // Hiển thị thông báo Xin chào
-      } else {
-        toast.error(response.message); // Show error message
-      }
-    } catch (error) {
-      toast.error('Lỗi khi đăng nhập'); // Show generic error message
-    }
-  };
-
-  // Hàm chuyển hướng sang Homepage
-  const navigateToHomepage = () => {
-    navigate('/homepage'); 
+  // Hàm xử lý khi đăng ký thành công và chuyển sang form đăng nhập
+  const handleSwitchToLogin = () => {
+    handleFormToggle('login');
   };
 
   return (
@@ -115,36 +81,11 @@ function FirstPage() {
 
       {/* Phần phải */}
       <div className="w-1/2 bg-transparent flex justify-center items-center relative">
-        {/* Hiển thị thông báo thành công */}
-        {showSuccessMessage ? (
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-bold text-teal-600 mb-4">Đăng ký thành công!</h2>
-            <button
-              onClick={handleLoginRedirect}
-              className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:scale-105 transition"
-            >
-              Đăng nhập ngay
-            </button>
-          </div>
-        ) : showWelcomeMessage ? (
-          // Hiển thị thông báo Xin chào
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-bold text-teal-600 mb-4">Xin chào!</h2>
-            <button
-              onClick={navigateToHomepage}
-              className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:scale-105 transition"
-            >
-              Khám phá ngay
-            </button>
-          </div>
-        ) : activeForm === 'login' ? (
-          // Hiển thị form Đăng nhập
-          <LoginForm onSubmit={handleLoginSubmit} />
+        {activeForm === 'login' ? (
+          <LoginForm />
         ) : activeForm === 'register' ? (
-          // Hiển thị form Đăng ký
-          <RegisterForm onSubmit={handleRegisterSubmit} /> 
+          <RegisterForm onSwitchToLogin={handleSwitchToLogin} />
         ) : (
-          // Hiển thị ảnh nền khi chưa chọn form
           <img src={bg1} alt="Background Illustration" className="w-3/5 h-auto rounded-lg shadow-2xl" />
         )}
       </div>

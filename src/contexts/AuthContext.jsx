@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService } from '../services/authService';
+import userService from '../services/userService';
 import { toast } from 'react-toastify';
 
 const AuthContext = createContext(null);
@@ -84,6 +85,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Thêm hàm fetchUserProfile để lấy thông tin chi tiết user
+  const fetchUserProfile = async () => {
+    try {
+      const response = await userService.getProfile();
+      if (response.success) {
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error('Fetch profile error:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       currentUser: user,
@@ -91,7 +104,8 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       isLoading,
-      isLoginLoading
+      isLoginLoading,
+      fetchUserProfile
     }}>
       {!isLoading && children}
     </AuthContext.Provider>
