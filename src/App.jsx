@@ -6,8 +6,8 @@ import Homepage from './pages/Homepage';
 import SinglePlay from './pages/SinglePlay';
 import CreatePage from './pages/CreatePage';
 import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
+import ProtectedRoute from './components/routes/ProtectedRoute';
+import PublicRoute from './components/routes/PublicRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
