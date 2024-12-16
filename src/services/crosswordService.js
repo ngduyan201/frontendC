@@ -59,6 +59,30 @@ export const crosswordService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Kiểm tra phiên hiện tại
+  getCurrentSession: async () => {
+    try {
+      const response = await api.get(API_URLS.CROSSWORDS.GET_SESSION);
+      return response;
+    } catch (error) {
+      if (error.status === 404) {
+        // Không có phiên hoặc phiên hết hạn
+        return { success: false, redirect: true };
+      }
+      throw error;
+    }
+  },
+
+  // Lưu và kết thúc phiên
+  saveAndEndSession: async (mainKeyword) => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.SAVE_SESSION, { mainKeyword });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

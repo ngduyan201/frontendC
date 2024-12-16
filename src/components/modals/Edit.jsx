@@ -96,10 +96,8 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
       const response = await crosswordService.createCrossword(crosswordData);
 
       if (response.success) {
-        alert('Tạo ô chữ thành công!');
-        navigate('/create', { 
-          state: { crosswordId: response.data._id } 
-        });
+        // Cookie đã được set tự động bởi browser
+        navigate('/create'); // Chuyển đến trang tạo nội dung
         onClose();
       }
     } catch (error) {

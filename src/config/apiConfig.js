@@ -20,6 +20,8 @@ export const API_URLS = {
     GET_BY_ID: (id) => `/crosswords/${id}`,
     UPDATE: (id) => `/crosswords/${id}`,
     DELETE: (id) => `/crosswords/${id}`,
+    GET_SESSION: '/crosswords/session',
+    SAVE_SESSION: '/crosswords/save'
   }
 }; 
 
