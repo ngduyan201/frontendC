@@ -83,6 +83,37 @@ export const crosswordService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  autoSave: async (data) => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.AUTO_SAVE, data);
+      return response;
+    } catch (error) {
+      console.error('Auto save error:', error);
+      throw error;
+    }
+  },
+
+  // Thêm method khôi phục phiên
+  recoverSession: async () => {
+    try {
+      const response = await api.get(API_URLS.CROSSWORDS.RECOVER_SESSION);
+      return response;
+    } catch (error) {
+      console.error('Session recovery error:', error);
+      throw error;
+    }
+  },
+
+  endSession: async () => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.END_SESSION);
+      return response;
+    } catch (error) {
+      console.error('End session error:', error);
+      throw error;
+    }
   }
 };
 

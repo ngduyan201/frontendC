@@ -8,7 +8,7 @@ const PrivateRoute = ({ children }) => {
     return <div>Đang tải...</div>;
   }
 
-  if (!user) {
+  if (!user) {  
     return <Navigate to="/login" />;
   }
 

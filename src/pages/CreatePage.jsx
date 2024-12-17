@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { HomeModal, SaveModal } from '../components/modals/PlayModal';
+import { crosswordService } from '../services/crosswordService';
+import { toast } from 'react-toastify';
 
 const MAX_KEYWORD_LENGTH = 16;
 const MAX_QUESTION_LENGTH = 150;
@@ -39,6 +41,8 @@ const CreatePage = () => {
     answer: false
   });
 
+  const [lastAutoSave, setLastAutoSave] = useState(null);
+
   const handleGoHome = () => {
     setShowHomeModal(true);
   };
@@ -47,9 +51,34 @@ const CreatePage = () => {
     setShowHomeModal(false);
   };
 
-  const handleConfirmGoHome = () => {
-    setShowHomeModal(false);
-    navigate('/account');
+  const handleConfirmGoHome = async () => {
+    try {
+      // Kết thúc phiên và xóa cookie
+      await crosswordService.endSession();
+      
+      setShowHomeModal(false);
+      // Reset các state về giá trị ban đầu
+      setPuzzleData({
+        name: '',
+        numQuestions: 0
+      });
+      setQuestionsData([]);
+      setLetters([]);
+      setKeywordPositions([]);
+      setSelectedButton(0);
+      
+      // Xóa các cảnh báo
+      setShowWarning(false);
+      setWarningMessage('');
+      setShowKeywordWarning(false);
+      setKeywordWarningMessage('');
+      setShowEmptyQuestionWarning(false);
+
+      navigate('/account');
+    } catch (error) {
+      console.error('Lỗi khi kết thúc phiên:', error);
+      toast.error('Có lỗi xảy ra khi kết thúc phiên làm việc');
+    }
   };
 
   const handleSave = () => {
@@ -60,10 +89,47 @@ const CreatePage = () => {
     setShowSaveModal(false);
   };
 
-  const handleConfirmSave = () => {
-    console.log('Đã lưu ô chữ');
-    setShowSaveModal(false);
-    navigate('/account');
+  const handleConfirmSave = async () => {
+    try {
+      // Gửi dữ liệu lên server
+      const response = await crosswordService.saveAndEndSession({
+        mainKeyword: puzzleData.name,
+        questions: questionsData
+      });
+
+      if (response.success) {
+        // Reset tất cả state về giá trị ban đầu
+        setPuzzleData({
+          name: '',
+          numQuestions: 0
+        });
+        setQuestionsData([]); // Xóa tất cả câu hỏi
+        setLetters([]); // Xóa bảng chữ
+        setKeywordPositions([]); // Xóa vị trí từ khóa
+        setSelectedButton(0);
+        
+        // Xóa các cảnh báo
+        setShowWarning(false);
+        setWarningMessage('');
+        setShowKeywordWarning(false);
+        setKeywordWarningMessage('');
+        setShowEmptyQuestionWarning(false);
+
+        // Reset trạng thái hoàn thành
+        setCompletionStatus({
+          keyword: false,
+          question: false,
+          answer: false
+        });
+
+        console.log('Đã lưu ô chữ');
+        setShowSaveModal(false);
+        navigate('/account');
+      }
+    } catch (error) {
+      console.error('Lỗi khi lưu ô chữ:', error);
+      alert('Có lỗi xảy ra khi lưu ô chữ');
+    }
   };
 
   const removeAccents = (str) => {
@@ -238,6 +304,39 @@ const CreatePage = () => {
     updateCompletionStatus();
   }, [puzzleData.name, questionsData, showKeywordWarning, showWarning, showEmptyQuestionWarning]);
 
+  const autoSave = async () => {
+    try {
+      if (!puzzleData.name || questionsData.length === 0) return;
+
+      const response = await crosswordService.autoSave({
+        mainKeyword: puzzleData.name,
+        questions: questionsData
+      });
+
+      if (response.success) {
+        setLastAutoSave(new Date());
+        console.log('Đã tự động lưu');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tự động lưu:', error);
+    }
+  };
+
+  useEffect(() => {
+    const autoSaveInterval = setInterval(autoSave, 300000); // 5 phút
+    return () => clearInterval(autoSaveInterval);
+  }, [puzzleData, questionsData]);
+
+  const AutoSaveIndicator = () => {
+    if (!lastAutoSave) return null;
+    
+    return (
+      <div className="text-sm text-gray-500 mt-2">
+        Lưu tự động lần cuối: {lastAutoSave.toLocaleTimeString()}
+      </div>
+    );
+  };
+
   return (
     <CreatePageContainer>
       <Banner>
@@ -253,7 +352,7 @@ const CreatePage = () => {
               borderColor: showKeywordWarning ? '#ff4d4d' : '#ccc'
             }}
           />
-          <CheckIcon visible={completionStatus.keyword}>✓</CheckIcon>
+          <CheckIcon $visible={completionStatus.keyword}>✓</CheckIcon>
           {showKeywordWarning && (
             <KeywordWarningMessage>
               * {keywordWarningMessage}
@@ -322,7 +421,7 @@ const CreatePage = () => {
               <QuestionForm>
                 <FormTitle>
                   Câu hỏi
-                  <CheckIcon visible={!showEmptyQuestionWarning && questionsData[selectedButton]?.question.trim() !== ''}>✓</CheckIcon>
+                  <CheckIcon $visible={!showEmptyQuestionWarning && questionsData[selectedButton]?.question.trim() !== ''}>✓</CheckIcon>
                 </FormTitle>
                 <QuestionInput 
                   ref={textareaRef}
@@ -339,7 +438,7 @@ const CreatePage = () => {
               <AnswerForm>
                 <FormTitle>
                   Nhập đáp án (có ít nhất 2 kí tự)
-                  <CheckIcon visible={!showWarning && 
+                  <CheckIcon $visible={!showWarning && 
                     questionsData[selectedButton]?.answer.includes(questionsData[selectedButton]?.keywordChar) && 
                     questionsData[selectedButton]?.answer.length >= 2}>✓</CheckIcon>
                 </FormTitle>
@@ -371,6 +470,7 @@ const CreatePage = () => {
           )}
         </RightPanel>
       </MainContent>
+      <AutoSaveIndicator />
     </CreatePageContainer>
   );
 };
