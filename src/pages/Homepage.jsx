@@ -45,6 +45,14 @@ const Homepage = () => {
         isOpen={showCreateModal}
         onClose={handleCloseModal}
         mode="create"
+        onCrosswordCreate={(crosswordData) => {
+          navigate('/create', { 
+            state: { 
+              crosswordId: crosswordData.id,
+              crosswordInfo: crosswordData 
+            } 
+          });
+        }}
       />
     </MainContent>
   );

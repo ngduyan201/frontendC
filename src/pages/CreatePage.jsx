@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { HomeModal, SaveModal } from '../components/modals/PlayModal';
 import { crosswordService } from '../services/crosswordService';
 import { toast } from 'react-toastify';
@@ -11,6 +11,7 @@ const MAX_ANSWER_LENGTH = 14;
 
 const CreatePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [puzzleData, setPuzzleData] = useState({
     name: '',
     numQuestions: 0
@@ -42,6 +43,18 @@ const CreatePage = () => {
   });
 
   const [lastAutoSave, setLastAutoSave] = useState(null);
+
+  const [crosswordInfo, setCrosswordInfo] = useState(null);
+
+  const [crosswordId, setCrosswordId] = useState(null);
+
+  useEffect(() => {
+    // Lấy ID từ location state nếu có
+    if (location.state?.crosswordId) {
+      setCrosswordId(location.state.crosswordId);
+      setCrosswordInfo(location.state.crosswordInfo);
+    }
+  }, [location]);
 
   const handleGoHome = () => {
     setShowHomeModal(true);
@@ -81,8 +94,56 @@ const CreatePage = () => {
     }
   };
 
-  const handleSave = () => {
-    setShowSaveModal(true);
+  const handleSave = async () => {
+    try {
+      // Validate dữ liệu
+      if (!puzzleData.name || questionsData.length === 0) {
+        toast.error('Vui lòng điền đầy đủ từ khóa và câu hỏi');
+        return;
+      }
+
+      // Kiểm tra xem tất cả câu hỏi và đáp án đã được điền chưa
+      const isComplete = questionsData.every(q => 
+        q.question.trim() !== '' && 
+        q.answer.trim() !== '' &&
+        q.answer.includes(q.keywordChar)
+      );
+
+      if (!isComplete) {
+        toast.error('Vui lòng hoàn thành tất cả câu hỏi và đáp án');
+        return;
+      }
+
+      // Format chỉ phần nội dung ô chữ
+      const crosswordContent = {
+        mainKeyword: [{
+          keyword: puzzleData.name,
+          associatedHorizontalKeywords: questionsData.map((q, index) => ({
+            questionNumber: index + 1,
+            questionContent: q.question,
+            answer: q.answer,
+            columnPosition: q.keywordPosition
+          }))
+        }]
+      };
+
+      // Gọi API lưu dữ liệu
+      const response = await crosswordService.saveCrossword(crosswordContent);
+
+      if (response.success) {
+        toast.success('Lưu ô chữ thành công!');
+        navigate('/account'); // Chuyển về trang account sau khi lưu thành công
+      } else {
+        toast.error(response.message || 'Có lỗi xảy ra khi lưu ô chữ');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      if (error.code === 'ERR_NETWORK') {
+        toast.error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối và thử lại.');
+      } else {
+        toast.error(error.message || 'Có lỗi xảy ra khi lưu ô chữ');
+      }
+    }
   };
 
   const handleCloseSaveModal = () => {
@@ -309,6 +370,7 @@ const CreatePage = () => {
       if (!puzzleData.name || questionsData.length === 0) return;
 
       const response = await crosswordService.autoSave({
+        crosswordId: crosswordId,
         mainKeyword: puzzleData.name,
         questions: questionsData
       });
@@ -370,6 +432,29 @@ const CreatePage = () => {
         </SaveButton>
       </Banner>
 
+      {crosswordInfo && (
+        <InfoSection>
+          <InfoItem>
+            <InfoLabel>Tên ô chữ:</InfoLabel>
+            <InfoValue>{crosswordInfo.title}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>Môn học:</InfoLabel>
+            <InfoValue>{crosswordInfo.subject}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>Cấp lớp:</InfoLabel>
+            <InfoValue>{crosswordInfo.grade}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>Trạng thái:</InfoLabel>
+            <InfoValue>
+              {crosswordInfo.status === 'public' ? 'Công khai' : 'Không công khai'}
+            </InfoValue>
+          </InfoItem>
+        </InfoSection>
+      )}
+
       <HomeModal 
         show={showHomeModal}
         onConfirm={handleConfirmGoHome}
@@ -388,7 +473,7 @@ const CreatePage = () => {
             {Array.from({ length: puzzleData.numQuestions || 0 }, (_, index) => (
               <RoundButton 
                 key={index} 
-                isSelected={selectedButton === index}
+                $isSelected={selectedButton === index}
                 onClick={() => handleButtonClick(index)}
               >
                 {index + 1}
@@ -402,8 +487,8 @@ const CreatePage = () => {
                 {Array.from({ length: 17 }, (_, colIndex) => (
                   <GridCell 
                     key={`${rowIndex}-${colIndex}`}
-                    isKeywordColumn={colIndex === 8}
-                    hasLetter={letters[rowIndex]?.[colIndex] !== ''}
+                    $isKeywordColumn={colIndex === 8}
+                    $hasLetter={letters[rowIndex]?.[colIndex] !== ''}
                   >
                     {letters[rowIndex]?.[colIndex] && (
                       <Letter>{letters[rowIndex][colIndex]}</Letter>
@@ -602,8 +687,8 @@ const RoundButton = styled.button`
   height: 46px;
   min-height: 46px;
   border-radius: 50%;
-  background-color: ${props => props.isSelected ? '#FFD700' : '#008080'};
-  color: ${props => props.isSelected ? '#000' : '#fff'};
+  background-color: ${props => props.$isSelected ? '#FFD700' : '#008080'};
+  color: ${props => props.$isSelected ? '#000' : '#fff'};
   border: none;
   font-size: 1.2rem;
   display: flex;
@@ -614,8 +699,8 @@ const RoundButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${props => props.isSelected ? '#FFD700' : '#006666'};
-    opacity: ${props => props.isSelected ? 1 : 0.9};
+    background-color: ${props => props.$isSelected ? '#FFD700' : '#006666'};
+    opacity: ${props => props.$isSelected ? 1 : 0.9};
   }
 `;
 
@@ -642,8 +727,8 @@ const GridCell = styled.div`
   align-items: center;
   position: relative;
   background-color: ${props => {
-    if (props.isKeywordColumn) return '#FFF3E0';
-    if (props.hasLetter) return '#E3F2FD';
+    if (props.$isKeywordColumn) return '#FFF3E0';
+    if (props.$hasLetter) return '#E3F2FD';
     return 'white';
   }};
 `;

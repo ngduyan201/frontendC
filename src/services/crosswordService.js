@@ -114,6 +114,16 @@ export const crosswordService = {
       console.error('End session error:', error);
       throw error;
     }
-  }
+  },
+
+  saveCrossword: async (crosswordData) => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.SAVE_CROSSWORD, crosswordData);
+      return response;
+    } catch (error) {
+      console.error('Save crossword error:', error);
+      throw error;
+    }
+  },
 };
 

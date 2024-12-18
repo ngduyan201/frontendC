@@ -22,7 +22,8 @@ export const API_URLS = {
     DELETE: (id) => `/crosswords/${id}`,
     GET_SESSION: '/crosswords/session',
     SAVE_SESSION: '/crosswords/save',
-    END_SESSION: '/crosswords/end-session'
+    END_SESSION: '/crosswords/end-session',
+    SAVE_CROSSWORD: '/crosswords/save-crossword',
   }
 }; 
 
