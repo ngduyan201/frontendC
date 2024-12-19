@@ -133,7 +133,15 @@
       }
     };
 
-    const handleSave = async () => {
+    const handleSave = () => {
+      setShowSaveModal(true);
+    };
+
+    const handleCloseSaveModal = () => {
+      setShowSaveModal(false);
+    };
+
+    const handleConfirmSave = async () => {
       try {
         // Validate dữ liệu
         if (!puzzleData.name || questionsData.length === 0) {
@@ -153,7 +161,7 @@
           return;
         }
 
-        // Format dữ liệu ô chữ và lấy startCol cuối cùng từ grid hiện tại
+        // Format và gửi dữ liệu
         const crosswordContent = {
           mainKeyword: [{
             keyword: puzzleData.name,
@@ -161,12 +169,11 @@
               questionNumber: index + 1,
               questionContent: q.question,
               answer: q.answer,
-              columnPosition: q.columnPosition // Lấy columnPosition đã được tính toán cuối cùng
+              columnPosition: q.columnPosition
             }))
           }]
         };
 
-        // Gọi API lưu dữ liệu
         const response = await crosswordService.saveCrossword(crosswordContent);
 
         if (response.success) {
@@ -183,53 +190,8 @@
         } else {
           toast.error(error.message || 'Có lỗi xảy ra khi lưu ô chữ');
         }
-      }
-    };
-
-    const handleCloseSaveModal = () => {
-      setShowSaveModal(false);
-    };
-
-    const handleConfirmSave = async () => {
-      try {
-        // Gửi dữ liệu lên server
-        const response = await crosswordService.saveAndEndSession({
-          mainKeyword: puzzleData.name,
-          questions: questionsData
-        });
-
-        if (response.success) {
-          // Reset tất cả state về giá trị ban đầu
-          setPuzzleData({
-            name: '',
-            numQuestions: 0
-          });
-          setQuestionsData([]); // Xóa tất cả câu hỏi
-          setLetters([]); // Xóa bảng chữ
-          setKeywordPositions([]); // Xóa vị trí từ khóa
-          setSelectedButton(0);
-          
-          // Xóa các cảnh báo
-          setShowWarning(false);
-          setWarningMessage('');
-          setShowKeywordWarning(false);
-          setKeywordWarningMessage('');
-          setShowEmptyQuestionWarning(false);
-
-          // Reset trạng thái hoàn thành
-          setCompletionStatus({
-            keyword: false,
-            question: false,
-            answer: false
-          });
-
-          console.log('Đã lưu ô chữ');
-          setShowSaveModal(false);
-          navigate('/account');
-        }
-      } catch (error) {
-        console.error('Lỗi khi lưu ô chữ:', error);
-        alert('Có lỗi xảy ra khi lưu ô chữ');
+      } finally {
+        setShowSaveModal(false);
       }
     };
 
@@ -588,7 +550,7 @@
     position: relative;
 
     &:hover::before {
-      content: ${props => props.disabled ? '"Còn dữ liệu chưa nhập hoặc bạn nhập sai yêu cầu"' : '""'};
+      content: ${props => props.disabled ? '"Còn dữ liệu chưa nhập hoặc bạn nhập sai yêu cầu"' : 'none'};
       position: absolute;
       top: 120%;
       right: 0;
