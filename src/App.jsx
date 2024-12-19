@@ -10,6 +10,7 @@ import ProtectedRoute from './components/routes/ProtectedRoute';
 import PublicRoute from './components/routes/PublicRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import RequireCrosswordSession from './components/hoc/RequireCrosswordSession';
 
 // Lazy load các trang không cần thiết ngay lập tức
 const Library = lazy(() => import('./pages/Library'));
@@ -54,7 +55,9 @@ function App() {
             } />
             <Route path="create" element={
               <ProtectedRoute>
-                <CreatePage />
+                <RequireCrosswordSession>
+                  <CreatePage />
+                </RequireCrosswordSession>
               </ProtectedRoute>
             } />
             
