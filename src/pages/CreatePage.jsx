@@ -1,6 +1,6 @@
   import React, { useState, useRef, useEffect } from 'react';
   import styled from 'styled-components';
-  import { useNavigate, useLocation } from 'react-router-dom';
+  import { useNavigate } from 'react-router-dom';
   import { HomeModal, SaveModal } from '../components/modals/PlayModal';
   import { crosswordService } from '../services/crosswordService';
   import { toast } from 'react-toastify';
@@ -11,7 +11,6 @@
 
   const CreatePage = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const [puzzleData, setPuzzleData] = useState({
       name: '',
       numQuestions: 0
@@ -42,17 +41,60 @@
       answer: false
     });
 
-    const [lastAutoSave, setLastAutoSave] = useState(null);
+    useEffect(() => {
+      const handleBeforeUnload = () => {
+        const sessionData = {
+          puzzleData,
+          questionsData,
+          letters,
+          keywordPositions,
+          selectedButton,
+          lastModified: new Date().toISOString()
+        };
+        localStorage.setItem('crosswordSession', JSON.stringify(sessionData));
+      };
 
-    const [crosswordId, setCrosswordId] = useState(null);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }, [puzzleData, questionsData, letters, keywordPositions, selectedButton]);
 
     useEffect(() => {
-      // Lấy ID từ location state nếu có
-      if (location.state?.crosswordId) {
-        setCrosswordId(location.state.crosswordId);
+      const savedSession = localStorage.getItem('crosswordSession');
+      if (savedSession) {
+        try {
+          const {
+            puzzleData: savedPuzzleData,
+            questionsData: savedQuestionsData,
+            letters: savedLetters,
+            keywordPositions: savedKeywordPositions,
+            selectedButton: savedSelectedButton,
+            lastModified
+          } = JSON.parse(savedSession);
 
+          // Kiểm tra thời gian lưu không quá 1 ngày
+          const lastModifiedDate = new Date(lastModified);
+          const now = new Date();
+          const diffHours = Math.abs(now - lastModifiedDate) / 36e5;
+
+          if (diffHours <= 24) {
+            setPuzzleData(savedPuzzleData);
+            setQuestionsData(savedQuestionsData);
+            setLetters(savedLetters);
+            setKeywordPositions(savedKeywordPositions);
+            setSelectedButton(savedSelectedButton);
+            toast.info('Đã khôi phục dữ liệu từ phiên làm việc trước');
+          } else {
+            localStorage.removeItem('crosswordSession');
+          }
+        } catch (error) {
+          console.error('Error restoring session:', error);
+          localStorage.removeItem('crosswordSession');
+        }
       }
-    }, [location]);
+    }, []);
 
     const handleGoHome = () => {
       setShowHomeModal(true);
@@ -64,9 +106,8 @@
 
     const handleConfirmGoHome = async () => {
       try {
-        // Kết thúc phiên và xóa cookie
         await crosswordService.endSession();
-        
+        localStorage.removeItem('crosswordSession');
         setShowHomeModal(false);
         // Reset các state về giá trị ban đầu
         setPuzzleData({
@@ -129,8 +170,9 @@
         const response = await crosswordService.saveCrossword(crosswordContent);
 
         if (response.success) {
+          localStorage.removeItem('crosswordSession');
           toast.success('Lưu ô chữ thành công!');
-          navigate('/account'); // Chuyển về trang account sau khi lưu thành công
+          navigate('/account');
         } else {
           toast.error(response.message || 'Có lỗi xảy ra khi lưu ô chữ');
         }
@@ -365,40 +407,6 @@
       updateCompletionStatus();
     }, [puzzleData.name, questionsData, showKeywordWarning, showWarning, showEmptyQuestionWarning]);
 
-    const autoSave = async () => {
-      try {
-        if (!puzzleData.name || questionsData.length === 0) return;
-
-        const response = await crosswordService.autoSave({
-          crosswordId: crosswordId,
-          mainKeyword: puzzleData.name,
-          questions: questionsData
-        });
-
-        if (response.success) {
-          setLastAutoSave(new Date());
-          console.log('Đã tự động lưu');
-        }
-      } catch (error) {
-        console.error('Lỗi khi tự động lưu:', error);
-      }
-    };
-
-    useEffect(() => {
-      const autoSaveInterval = setInterval(autoSave, 300000); // 5 phút
-      return () => clearInterval(autoSaveInterval);
-    }, [puzzleData, questionsData]);
-
-    const AutoSaveIndicator = () => {
-      if (!lastAutoSave) return null;
-      
-      return (
-        <div className="text-sm text-gray-500 mt-2">
-          Lưu tự động lần cuối: {lastAutoSave.toLocaleTimeString()}
-        </div>
-      );
-    };
-
     return (
       <CreatePageContainer>
         <Banner>
@@ -532,7 +540,6 @@
             )}
           </RightPanel>
         </MainContent>
-        <AutoSaveIndicator />
       </CreatePageContainer>
     );
   };
