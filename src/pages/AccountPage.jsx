@@ -221,7 +221,7 @@ const AccountPage = () => {
             </InfoGroup>
 
             <InfoGroup>
-              <Label>Cập nhật lần cuối</Label>
+              <Label>Đăng nhập lần cuối</Label>
               <Input value={userInfo.updatedAt || ''} disabled />
             </InfoGroup>
 
