@@ -128,7 +128,6 @@ export const crosswordService = {
 
   fetchCrosswords: async (page = 1, limit = 6) => {
     try {
-      console.log('Fetching user crosswords:', { page, limit });
       const response = await api.get(API_URLS.CROSSWORDS.GET_USER_CROSSWORDS, {
         params: {
           page,
@@ -138,17 +137,32 @@ export const crosswordService = {
       
       console.log('Raw API response:', response);
 
-      // Kiểm tra response đơn giản hơn
-      if (!response?.data) {
-        throw new Error('Invalid response format');
+      // Kiểm tra response là một mảng
+      const crosswordsData = response.data;
+      if (!Array.isArray(crosswordsData)) {
+        console.error('Response is not an array:', crosswordsData);
+        return {
+          data: [],
+          totalPages: 1,
+          success: false
+        };
       }
 
-      // Lấy dữ liệu từ response
-      const { data, pagination } = response.data;
+      // Format data trực tiếp từ mảng
+      const formattedData = crosswordsData.map(item => ({
+        _id: item._id,
+        title: item.title,
+        questionCount: item.questionCount,
+        author: item.author
+      }));
+
+      // Tính totalPages dựa trên độ dài mảng và limit
+      const totalItems = crosswordsData.length;
+      const totalPages = Math.ceil(totalItems / limit);
 
       return {
-        data: data || [],
-        totalPages: pagination?.totalPages || 1,
+        data: formattedData,
+        totalPages: totalPages,
         success: true
       };
 

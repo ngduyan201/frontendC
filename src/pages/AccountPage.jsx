@@ -103,18 +103,15 @@ const AccountPage = () => {
       setIsLoadingCrosswords(true);
       try {
         const response = await crosswordService.fetchCrosswords(page, 6);
-        if (response.success && Array.isArray(response.data)) {
+        console.log('Response from service:', response);
+        
+        if (response.success && response.data) {
           setCrosswords(response.data);
           setTotalPages(response.totalPages);
-        } else {
-          setCrosswords([]);
-          setTotalPages(1);
         }
       } catch (error) {
-        console.error('Error fetching crosswords:', error);
+        console.error('Error loading crosswords:', error);
         toast.error('Không thể tải danh sách ô chữ');
-        setCrosswords([]);
-        setTotalPages(1);
       } finally {
         setIsLoadingCrosswords(false);
       }
@@ -195,15 +192,18 @@ const AccountPage = () => {
               <>
                 <CrosswordGrid>
                   {crosswords.length > 0 ? (
-                    crosswords.map((crossword) => (
-                      <CrosswordCard
-                        key={crossword._id}
-                        title={crossword.title}
-                        questionCount={crossword.questionCount}
-                        author={crossword.author}
-                        width="100%"
-                      ></CrosswordCard>
-                    ))
+                    crosswords.map((crossword) => {
+                      console.log('Rendering crossword:', crossword);
+                      return (
+                        <CrosswordCard
+                          key={crossword._id}
+                          title={crossword.title}
+                          questionCount={crossword.questionCount}
+                          author={crossword.author}
+                          width="100%"
+                        />
+                      );
+                    })
                   ) : (
                     <EmptyMessage>Bạn chưa có ô chữ nào</EmptyMessage>
                   )}
