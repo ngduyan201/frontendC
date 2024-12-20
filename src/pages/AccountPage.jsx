@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import userService from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
 import { useAuth } from '../contexts/AuthContext';
+import CrosswordCard from '../components/features/CrosswordCard';
+import { crosswordService } from '../services/crosswordService';
 
 const VALID_OCCUPATIONS = ['Giáo viên', 'Học sinh', 'Sinh viên', 'Khác'];
 
@@ -29,6 +31,10 @@ const AccountPage = () => {
     createdAt: '',
     updatedAt: ''
   });
+  const [crosswords, setCrosswords] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoadingCrosswords, setIsLoadingCrosswords] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -91,6 +97,31 @@ const AccountPage = () => {
       isMounted = false;
     };
   }, [user?.fullName]);
+
+  useEffect(() => {
+    const loadCrosswords = async () => {
+      setIsLoadingCrosswords(true);
+      try {
+        const response = await crosswordService.fetchCrosswords(page, 6);
+        if (response.success && Array.isArray(response.data)) {
+          setCrosswords(response.data);
+          setTotalPages(response.totalPages);
+        } else {
+          setCrosswords([]);
+          setTotalPages(1);
+        }
+      } catch (error) {
+        console.error('Error fetching crosswords:', error);
+        toast.error('Không thể tải danh sách ô chữ');
+        setCrosswords([]);
+        setTotalPages(1);
+      } finally {
+        setIsLoadingCrosswords(false);
+      }
+    };
+
+    loadCrosswords();
+  }, [page]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -158,7 +189,45 @@ const AccountPage = () => {
         <ContentWrapper>
           <CrosswordList>
             <SectionTitle>Danh sách ô chữ của tôi</SectionTitle>
-            {/* Component danh sách ô chữ */}
+            {isLoadingCrosswords ? (
+              <LoadingSpinner>Đang tải danh sách ô chữ...</LoadingSpinner>
+            ) : (
+              <>
+                <CrosswordGrid>
+                  {crosswords.length > 0 ? (
+                    crosswords.map((crossword) => (
+                      <CrosswordCard
+                        key={crossword._id}
+                        title={crossword.title}
+                        questionCount={crossword.questionCount}
+                        author={crossword.author}
+                        width="100%"
+                      ></CrosswordCard>
+                    ))
+                  ) : (
+                    <EmptyMessage>Bạn chưa có ô chữ nào</EmptyMessage>
+                  )}
+                </CrosswordGrid>
+                
+                {crosswords.length > 0 && (
+                  <PaginationContainer>
+                    <PageButton 
+                      onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                      disabled={page === 1}
+                    >
+                      Trang trước
+                    </PageButton>
+                    <PageInfo>Trang {page} / {totalPages}</PageInfo>
+                    <PageButton 
+                      onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Trang kế
+                    </PageButton>
+                  </PaginationContainer>
+                )}
+              </>
+            )}
           </CrosswordList>
 
           <AccountInfo>
@@ -437,6 +506,48 @@ const ErrorMessage = styled.div`
   border: 1px solid #f44336;
   border-radius: 4px;
   background-color: #ffebee;
+`;
+
+const CrosswordGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+`;
+
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+`;
+
+const PageButton = styled.button`
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: ${props => props.disabled ? '#ccc' : '#333'};
+  color: white;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #444;
+  }
+`;
+
+const PageInfo = styled.span`
+  color: #666;
+  font-size: 1rem;
+`;
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  margin: 40px 0;
+  font-style: italic;
 `;
 
 export default AccountPage;

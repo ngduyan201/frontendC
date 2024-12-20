@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const CrosswordCard = ({ title, questionCount, author, width }) => {
@@ -11,6 +12,20 @@ const CrosswordCard = ({ title, questionCount, author, width }) => {
       </CardFooter>
     </CardContainer>
   );
+};
+
+CrosswordCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  questionCount: PropTypes.number.isRequired,
+  author: PropTypes.string.isRequired,
+  width: PropTypes.string
+};
+
+CrosswordCard.defaultProps = {
+  title: 'Ô chữ không có tên',
+  questionCount: 0,
+  author: 'Ẩn danh',
+  width: '100%'
 };
 
 const CardContainer = styled.div`

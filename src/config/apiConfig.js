@@ -24,6 +24,7 @@ export const API_URLS = {
     SAVE_SESSION: '/crosswords/save',
     END_SESSION: '/crosswords/end-session',
     SAVE_CROSSWORD: '/crosswords/save-crossword',
+    GET_USER_CROSSWORDS: '/crosswords/user',
   }
 }; 
 

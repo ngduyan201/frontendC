@@ -125,5 +125,41 @@ export const crosswordService = {
       throw error;
     }
   },
+
+  fetchCrosswords: async (page = 1, limit = 6) => {
+    try {
+      console.log('Fetching user crosswords:', { page, limit });
+      const response = await api.get(API_URLS.CROSSWORDS.GET_USER_CROSSWORDS, {
+        params: {
+          page,
+          limit
+        }
+      });
+      
+      console.log('Raw API response:', response);
+
+      // Kiểm tra response đơn giản hơn
+      if (!response?.data) {
+        throw new Error('Invalid response format');
+      }
+
+      // Lấy dữ liệu từ response
+      const { data, pagination } = response.data;
+
+      return {
+        data: data || [],
+        totalPages: pagination?.totalPages || 1,
+        success: true
+      };
+
+    } catch (error) {
+      console.error('Fetch crosswords error:', error);
+      return {
+        data: [],
+        totalPages: 1,
+        success: false
+      };
+    }
+  },
 };
 
