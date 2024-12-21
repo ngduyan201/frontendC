@@ -34,7 +34,7 @@ const AccountPage = () => {
   });
   const [crosswords, setCrosswords] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(5);
   const [isLoadingCrosswords, setIsLoadingCrosswords] = useState(false);
   const [selectedCrossword, setSelectedCrossword] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -104,10 +104,12 @@ const AccountPage = () => {
   const loadCrosswords = useCallback(async () => {
     setIsLoadingCrosswords(true);
     try {
-      const response = await crosswordService.fetchCrosswords(page, 6);
+      const response = await crosswordService.fetchCrosswords(page, 5);
       if (response.success && Array.isArray(response.data)) {
         setCrosswords(response.data);
-        setTotalPages(response.totalPages);
+        if (response.pagination && response.pagination.totalPages) {
+          setTotalPages(response.pagination.totalPages);
+        }
       }
     } catch (error) {
       console.error('Error loading crosswords:', error);
