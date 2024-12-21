@@ -41,7 +41,7 @@ export const crosswordService = {
         throw new Error('ID ô chữ không được để trống');
       }
       console.log('Updating crossword:', id, updateData);
-      const response = await api.put(API_URLS.CROSSWORDS.UPDATE_CROSSWORD(id), updateData);
+      const response = await api.put(API_URLS.CROSSWORDS.UPDATE(id), updateData);
       
       if (!response.data) {
         throw new Error('No data received from server');

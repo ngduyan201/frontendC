@@ -25,7 +25,6 @@ export const API_URLS = {
     END_SESSION: '/crosswords/end-session',
     SAVE_CROSSWORD: '/crosswords/save-crossword',
     GET_USER_CROSSWORDS: '/crosswords/user',
-    UPDATE_CROSSWORD: (id) => `/crosswords/${id}`,
   }
 }; 
 
