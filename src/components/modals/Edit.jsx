@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { crosswordService } from '../../services/crosswordService';
+import { toast } from 'react-toastify';
 
 const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
   const navigate = useNavigate();
@@ -24,9 +25,21 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
     onClose();
   };
 
-  const handleEditContentClick = () => {
-    navigate('/create');
-    onClose();
+  const handleEditContentClick = async () => {
+    try {
+      // Gọi API để tạo edit session
+      const response = await crosswordService.startEditSession(data._id);
+      
+      if (response.success) {
+        navigate('/create'); // Cookie đã được set tự động
+        onClose();
+      } else {
+        toast.error(response.message || 'Không thể bắt đầu chỉnh sửa');
+      }
+    } catch (error) {
+      console.error('Error starting edit session:', error);
+      toast.error('Có lỗi xảy ra khi bắt đầu chỉnh sửa');
+    }
   };
 
   const handleEditInfoClick = () => {

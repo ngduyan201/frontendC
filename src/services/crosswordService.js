@@ -190,6 +190,16 @@ export const crosswordService = {
         success: false
       };
     }
+  },
+
+  startEditSession: async (crosswordId) => {
+    try {
+      const response = await api.post(`${API_URLS.CROSSWORDS.START_EDIT}/${crosswordId}`);
+      return response;
+    } catch (error) {
+      console.error('Start edit session error:', error);
+      throw error;
+    }
   }
 };
 

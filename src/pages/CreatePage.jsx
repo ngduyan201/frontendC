@@ -96,6 +96,62 @@
       }
     }, []);
 
+    useEffect(() => {
+      const checkSession = async () => {
+        try {
+          const response = await crosswordService.getCurrentSession();
+          
+          if (response.success) {
+            const crosswordData = response.data;
+            
+            if (crosswordData.mainKeyword && crosswordData.mainKeyword.length > 0) {
+              const mainKeywordData = crosswordData.mainKeyword[0];
+              const keyword = mainKeywordData.keyword;
+
+              // 1. Set từ khóa trước
+              handlePuzzleNameChange({ target: { value: keyword } });
+
+              // 2. Đợi từ khóa được xử lý xong
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+              // 3. Chuẩn bị và set questions data
+              const questions = mainKeywordData.associatedHorizontalKeywords
+                .sort((a, b) => a.questionNumber - b.questionNumber)
+                .map(item => ({
+                  question: item.questionContent,
+                  answer: item.answer,
+                  keywordChar: keyword[item.questionNumber - 1],
+                  columnPosition: item.columnPosition
+                }));
+
+              setQuestionsData(questions);
+
+              // 4. Đợi questions data được set xong
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+              // 5. Xử lý từng câu trả lời
+              for (const [index, question] of questions.entries()) {
+                setSelectedButton(index);
+                // Truyền keywordChar trực tiếp vào event thay vì dựa vào state
+                handleAnswerChange({
+                  target: {
+                    value: question.answer,
+                    keywordChar: question.keywordChar
+                  }
+                });
+              }
+              setSelectedButton(0);
+            }
+          }
+        } catch (error) {
+          console.error('Session check error:', error);
+          toast.error('Có lỗi xảy ra khi tải dữ liệu ô chữ');
+        }
+      };
+
+      checkSession();
+    }, []);
+
     const handleGoHome = () => {
       setShowHomeModal(true);
     };
