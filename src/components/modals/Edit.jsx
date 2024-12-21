@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { crosswordService } from '../../services/crosswordService';
 
-const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
+const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(data || {
     title: '',
@@ -31,9 +31,9 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit' }) => {
 
   const handleEditInfoClick = () => {
     if (isEditing) {
-      // Nếu đang ở chế độ chỉnh sửa, thực hiện lưu
-      console.log('Saving data:', formData);
-      // Thêm logic lưu dữ liệu ở đây
+      // Log data trước khi gửi đi
+      console.log('Form data being sent:', formData);
+      onSave(formData);
     }
     setIsEditing(!isEditing);
   };

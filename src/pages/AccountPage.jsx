@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import userService from '../services/userService';
@@ -6,6 +6,7 @@ import ChangePasswordModal from '../components/modals/ChangePWModal';
 import { useAuth } from '../contexts/AuthContext';
 import CrosswordCard from '../components/features/CrosswordCard';
 import { crosswordService } from '../services/crosswordService';
+import EditModal from '../components/modals/Edit';
 
 const VALID_OCCUPATIONS = ['Giáo viên', 'Học sinh', 'Sinh viên', 'Khác'];
 
@@ -35,6 +36,8 @@ const AccountPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingCrosswords, setIsLoadingCrosswords] = useState(false);
+  const [selectedCrossword, setSelectedCrossword] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -98,27 +101,25 @@ const AccountPage = () => {
     };
   }, [user?.fullName]);
 
-  useEffect(() => {
-    const loadCrosswords = async () => {
-      setIsLoadingCrosswords(true);
-      try {
-        const response = await crosswordService.fetchCrosswords(page, 6);
-        console.log('Response from service:', response);
-        
-        if (response.success && response.data) {
-          setCrosswords(response.data);
-          setTotalPages(response.totalPages);
-        }
-      } catch (error) {
-        console.error('Error loading crosswords:', error);
-        toast.error('Không thể tải danh sách ô chữ');
-      } finally {
-        setIsLoadingCrosswords(false);
+  const loadCrosswords = useCallback(async () => {
+    setIsLoadingCrosswords(true);
+    try {
+      const response = await crosswordService.fetchCrosswords(page, 6);
+      if (response.success && Array.isArray(response.data)) {
+        setCrosswords(response.data);
+        setTotalPages(response.totalPages);
       }
-    };
-
-    loadCrosswords();
+    } catch (error) {
+      console.error('Error loading crosswords:', error);
+      toast.error('Không thể tải danh sách ô chữ');
+    } finally {
+      setIsLoadingCrosswords(false);
+    }
   }, [page]);
+
+  useEffect(() => {
+    loadCrosswords();
+  }, [loadCrosswords]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -178,6 +179,59 @@ const AccountPage = () => {
     }
   };
 
+  const handleCardClick = useCallback((crossword) => {
+    if (crossword) {
+      const modalData = {
+        _id: crossword._id,
+        title: crossword.title || '',
+        status: crossword.status === 'Công khai' ? 'public' : 'private',
+        grade: crossword.grade || '',
+        subject: crossword.subject || '',
+      };
+      console.log('Setting modal data:', modalData);
+      setSelectedCrossword(modalData);
+      setShowEditModal(true);
+    }
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowEditModal(false);
+    setTimeout(() => {
+      setSelectedCrossword(null);
+    }, 300);
+  }, []);
+
+  const handleUpdateCrossword = useCallback(async (updatedData) => {
+    try {
+      if (!selectedCrossword?._id) return;
+
+      console.log('Received data from modal:', updatedData);
+
+      // Format lại data cho đúng với yêu cầu của API
+      const formattedData = {
+        title: updatedData.title,
+        status: updatedData.status === 'public' ? 'Công khai' : 'Không công khai',
+        subject: updatedData.subject,
+        grade: updatedData.grade
+      };
+
+      console.log('Formatted data for API:', formattedData);
+      
+      const response = await crosswordService.updateCrossword(selectedCrossword._id, formattedData);
+      
+      if (response.success) {
+        toast.success('Cập nhật thông tin thành công');
+        loadCrosswords();
+        handleCloseModal();
+      } else {
+        toast.error('Không thể cập nhật thông tin');
+      }
+    } catch (error) {
+      console.error('Error updating crossword:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật');
+    }
+  }, [selectedCrossword, loadCrosswords, handleCloseModal]);
+
   return (
     <PageContainer>
       {isLoadingProfile ? (
@@ -197,10 +251,11 @@ const AccountPage = () => {
                       return (
                         <CrosswordCard
                           key={crossword._id}
-                          title={crossword.title}
-                          questionCount={crossword.questionCount}
-                          author={crossword.author}
+                          title={crossword.title || 'Ô chữ không có tên'}
+                          questionCount={crossword.questionCount || 0}
+                          author={crossword.author || 'Ẩn danh'}
                           width="100%"
+                          onClick={() => handleCardClick(crossword)}
                         />
                       );
                     })
@@ -333,6 +388,16 @@ const AccountPage = () => {
         show={showPWModal} 
         onClose={() => setShowPWModal(false)} 
       />
+
+      {selectedCrossword && (
+        <EditModal
+          isOpen={showEditModal}
+          onClose={handleCloseModal}
+          data={selectedCrossword}
+          mode="edit"
+          onSave={handleUpdateCrossword}
+        />
+      )}
     </PageContainer>
   );
 };
@@ -550,4 +615,4 @@ const EmptyMessage = styled.div`
   font-style: italic;
 `;
 
-export default AccountPage;
+export default memo(AccountPage);

@@ -41,10 +41,22 @@ export const crosswordService = {
         throw new Error('ID ô chữ không được để trống');
       }
       console.log('Updating crossword:', id, updateData);
-      const response = await api.put(API_URLS.CROSSWORDS.UPDATE(id), updateData);
-      return response;
+      const response = await api.put(API_URLS.CROSSWORDS.UPDATE_CROSSWORD(id), updateData);
+      
+      if (!response.data) {
+        throw new Error('No data received from server');
+      }
+
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      throw error;
+      console.error('Update crossword error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật'
+      };
     }
   },
 
@@ -153,7 +165,11 @@ export const crosswordService = {
         _id: item._id,
         title: item.title,
         questionCount: item.questionCount,
-        author: item.author
+        author: item.author,
+        // Thêm các trường mới nhưng chưa hiển thị
+        status: item.status,
+        subject: item.subject,
+        grade: item.grade
       }));
 
       // Tính totalPages dựa trên độ dài mảng và limit
@@ -174,6 +190,6 @@ export const crosswordService = {
         success: false
       };
     }
-  },
+  }
 };
 

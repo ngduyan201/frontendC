@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { memo } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-const CrosswordCard = ({ title, questionCount, author, width }) => {
+const CrosswordCard = memo(({ 
+  title = 'Ô chữ không có tên',
+  questionCount = 0,
+  author = 'Ẩn danh',
+  width = '100%',
+  onClick 
+}) => {
   return (
-    <CardContainer $width={width}>
+    <CardContainer $width={width} onClick={onClick}>
       <Title>{title}</Title>
       <CardFooter>
         <QuestionCount>Số câu hỏi: {questionCount}</QuestionCount>
@@ -12,20 +18,14 @@ const CrosswordCard = ({ title, questionCount, author, width }) => {
       </CardFooter>
     </CardContainer>
   );
-};
+});
 
 CrosswordCard.propTypes = {
-  title: PropTypes.string.isRequired,
-  questionCount: PropTypes.number.isRequired,
-  author: PropTypes.string.isRequired,
-  width: PropTypes.string
-};
-
-CrosswordCard.defaultProps = {
-  title: 'Ô chữ không có tên',
-  questionCount: 0,
-  author: 'Ẩn danh',
-  width: '100%'
+  title: PropTypes.string,
+  questionCount: PropTypes.number,
+  author: PropTypes.string,
+  width: PropTypes.string,
+  onClick: PropTypes.func
 };
 
 const CardContainer = styled.div`
