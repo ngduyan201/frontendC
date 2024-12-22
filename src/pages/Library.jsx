@@ -1,155 +1,42 @@
-import React, { useState } from 'react';  
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Outlet } from 'react-router-dom';
-import Modal from '../components/modals/Information.jsx';
+import { crosswordService } from '../services/crosswordService';
+import CrosswordCard from '../components/features/CrosswordCard';
+import { toast } from 'react-toastify';
 
 const Library = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState(null);
+  const [libraryCrosswords, setLibraryCrosswords] = useState({
+    random: [],
+    mostPlayed: [],
+    newest: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLibraryCrosswords = async () => {
+      setIsLoading(true);
+      try {
+        const response = await crosswordService.fetchLibraryCrosswords();
+        if (response.success) {
+          setLibraryCrosswords(response.data);
+        } else {
+          toast.error('Không thể tải danh sách ô chữ');
+        }
+      } catch (error) {
+        console.error('Error loading library crosswords:', error);
+        toast.error('Có lỗi xảy ra khi tải thư viện');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadLibraryCrosswords();
+  }, []);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
-
-  const handleButtonClick = (data) => {
-    setSelectedData(data);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
-
-  // Sample data for each section
-  const randomPuzzles = [
-    { 
-      name: 'Ô chữ về động vật', 
-      numQuestions: 5, 
-      createdAt: '2023-11-25', 
-      author: 'Tác giả 1',
-      grade: 'Lớp 6',
-      subject: 'Sinh học'
-    },
-    { 
-      name: 'Ô chữ về thực vật', 
-      numQuestions: 8, 
-      createdAt: '2023-11-28', 
-      author: 'Tác giả 2',
-      grade: 'Lớp 7',
-      subject: 'Sinh học'
-    },
-    { 
-      name: 'Ô chữ về địa lý', 
-      numQuestions: 6, 
-      createdAt: '2023-11-30', 
-      author: 'Tác giả 3',
-      grade: 'Lớp 8',
-      subject: 'Địa lý'
-    },
-    { 
-      name: 'Ô chữ về khí hậu', 
-      numQuestions: 7, 
-      createdAt: '2023-11-29', 
-      author: 'Tác giả 4',
-      grade: 'Lớp 8',
-      subject: 'Địa lý'
-    },
-    { 
-      name: 'Ô chữ về sinh vật biển', 
-      numQuestions: 9, 
-      createdAt: '2023-11-27', 
-      author: 'Tác giả 5',
-      grade: 'Lớp 7',
-      subject: 'Sinh học'
-    }
-  ];
-
-  const mostPlayedPuzzles = [
-    { 
-      name: 'Ô chữ về lịch sử Việt Nam', 
-      numQuestions: 10, 
-      createdAt: '2023-11-20', 
-      author: 'Tác giả 6',
-      grade: 'Lớp 9',
-      subject: 'Lịch sử'
-    },
-    { 
-      name: 'Ô chữ về văn học dân gian', 
-      numQuestions: 7, 
-      createdAt: '2023-11-22', 
-      author: 'Tác giả 7',
-      grade: 'Lớp 6',
-      subject: 'Ngữ văn'
-    },
-    { 
-      name: 'Ô chữ về vật lý cơ học', 
-      numQuestions: 9, 
-      createdAt: '2023-11-24', 
-      author: 'Tác giả 8',
-      grade: 'Lớp 7',
-      subject: 'Vật lý'
-    },
-    { 
-      name: 'Ô chữ về hóa học hữu cơ', 
-      numQuestions: 8, 
-      createdAt: '2023-11-23', 
-      author: 'Tác giả 9',
-      grade: 'Lớp 9',
-      subject: 'Hóa học'
-    },
-    { 
-      name: 'Ô chữ về toán đại số', 
-      numQuestions: 6, 
-      createdAt: '2023-11-21', 
-      author: 'Tác giả 10',
-      grade: 'Lớp 8',
-      subject: 'Toán học'
-    }
-  ];
-
-  const newestPuzzles = [
-    { 
-      name: 'Ô chữ về âm nhạc dân tộc', 
-      numQuestions: 6, 
-      createdAt: '2023-12-01', 
-      author: 'Tác giả 11',
-      grade: 'Lớp 8',
-      subject: 'Âm nhạc'
-    },
-    { 
-      name: 'Ô chữ về thể thao Olympic', 
-      numQuestions: 8, 
-      createdAt: '2023-11-29', 
-      author: 'Tác giả 12',
-      grade: 'Lớp 9',
-      subject: 'Thể dục'
-    },
-    { 
-      name: 'Ô chữ về nghệ thuật hiện đại', 
-      numQuestions: 7, 
-      createdAt: '2023-11-28', 
-      author: 'Tác giả 13',
-      grade: 'Lớp 6',
-      subject: 'Mỹ thuật'
-    },
-    { 
-      name: 'Ô chữ về công nghệ thông tin', 
-      numQuestions: 9, 
-      createdAt: '2023-11-30', 
-      author: 'Tác giả 14',
-      grade: 'Lớp 8',
-      subject: 'Tin học'
-    },
-    { 
-      name: 'Ô chữ về tiếng Anh giao tiếp', 
-      numQuestions: 10, 
-      createdAt: '2023-11-27', 
-      author: 'Tác giả 15',
-      grade: 'Lớp 7',
-      subject: 'Tiếng Anh'
-    }
-  ];
 
   return (
     <LibraryContainer>
@@ -168,61 +55,52 @@ const Library = () => {
           <ColumnHeader>
             <ColumnTitle>Ô chữ ngẫu nhiên</ColumnTitle>
           </ColumnHeader>
-          <PuzzleList>
-            {randomPuzzles.slice(0, 5).map((puzzle, index) => (
-              <PuzzleItem key={index} onClick={() => handleButtonClick(puzzle)}>
-                <PuzzleName>{puzzle.name}</PuzzleName>
-                <PuzzleInfo>
-                  <span>Số câu hỏi: {puzzle.numQuestions}</span>
-                  <span>Tác giả: {puzzle.author}</span>
-                </PuzzleInfo>
-              </PuzzleItem>
+          <CrosswordList>
+            {libraryCrosswords.random.map((crossword) => (
+              <CrosswordCard 
+                key={crossword._id}
+                title={crossword.title || 'Ô chữ không có tên'}
+                questionCount={crossword.questionCount || 0}
+                author={crossword.author || 'Ẩn danh'}
+              />
             ))}
-          </PuzzleList>
+          </CrosswordList>
         </LibraryColumn>
 
         <LibraryColumn>
           <ColumnHeader>
             <ColumnTitle>Được chơi nhiều nhất</ColumnTitle>
           </ColumnHeader>
-          <PuzzleList>
-            {mostPlayedPuzzles.slice(0, 5).map((puzzle, index) => (
-              <PuzzleItem key={index} onClick={() => handleButtonClick(puzzle)}>
-                <PuzzleName>{puzzle.name}</PuzzleName>
-                <PuzzleInfo>
-                  <span>Số câu hỏi: {puzzle.numQuestions}</span>
-                  <span>Tác giả: {puzzle.author}</span>
-                </PuzzleInfo>
-              </PuzzleItem>
+          <CrosswordList>
+            {libraryCrosswords.mostPlayed.map((crossword) => (
+              <CrosswordCard 
+                key={crossword._id}
+                title={crossword.title || 'Ô chữ không có tên'}
+                questionCount={crossword.questionCount || 0}
+                author={crossword.author || 'Ẩn danh'}
+              />
             ))}
-          </PuzzleList>
+          </CrosswordList>
         </LibraryColumn>
 
         <LibraryColumn>
           <ColumnHeader>
             <ColumnTitle>Ô chữ mới nhất</ColumnTitle>
           </ColumnHeader>
-          <PuzzleList>
-            {newestPuzzles.slice(0, 5).map((puzzle, index) => (
-              <PuzzleItem key={index} onClick={() => handleButtonClick(puzzle)}>
-                <PuzzleName>{puzzle.name}</PuzzleName>
-                <PuzzleInfo>
-                  <span>Số câu hỏi: {puzzle.numQuestions}</span>
-                  <span>Tác giả: {puzzle.author}</span>
-                </PuzzleInfo>
-              </PuzzleItem>
+          <CrosswordList>
+            {libraryCrosswords.newest.map((crossword) => (
+              <CrosswordCard 
+                key={crossword._id}
+                title={crossword.title || 'Ô chữ không có tên'}
+                questionCount={crossword.questionCount || 0}
+                author={crossword.author || 'Ẩn danh'}
+              />
             ))}
-          </PuzzleList>
+          </CrosswordList>
         </LibraryColumn>
       </LibraryContent>
 
-      <Outlet />
-
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleModalClose} 
-        data={selectedData} 
-      />
+      {isLoading && <LoadingSpinner />}
     </LibraryContainer>
   );
 };
@@ -304,35 +182,15 @@ const ColumnTitle = styled.h2`
   text-align: center;
 `;
 
-const PuzzleList = styled.div`
+const CrosswordList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 15px;
 `;
 
-const PuzzleItem = styled.div`
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #f8f8f8;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const PuzzleName = styled.h3`
-  font-size: 1.2rem;
-  color: #333;
-  margin-bottom: 8px;
-`;
-
-const PuzzleInfo = styled.div`
+const LoadingSpinner = styled.div`
   display: flex;
-  justify-content: space-between;
-  color: #666;
-  font-size: 0.9rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
 `;

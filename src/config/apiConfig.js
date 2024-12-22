@@ -26,6 +26,7 @@ export const API_URLS = {
     SAVE_CROSSWORD: '/crosswords/save-crossword',
     GET_USER_CROSSWORDS: '/crosswords/user',
     START_EDIT: '/crosswords/edit',
+    GET_LIBRARY: '/crosswords/library',
   }
 }; 
 

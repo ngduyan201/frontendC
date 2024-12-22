@@ -7,10 +7,11 @@ const CrosswordCard = memo(({
   questionCount = 0,
   author = 'Ẩn danh',
   width = '100%',
+  height = '150px',
   onClick 
 }) => {
   return (
-    <CardContainer $width={width} onClick={onClick}>
+    <CardContainer $width={width} $height={height} onClick={onClick}>
       <Title>{title}</Title>
       <CardFooter>
         <QuestionCount>Số câu hỏi: {questionCount}</QuestionCount>
@@ -25,6 +26,7 @@ CrosswordCard.propTypes = {
   questionCount: PropTypes.number,
   author: PropTypes.string,
   width: PropTypes.string,
+  height: PropTypes.string,
   onClick: PropTypes.func
 };
 
@@ -33,8 +35,8 @@ const CardContainer = styled.div`
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: ${props => props.$width || '100%'};
-  min-height: 150px;
+  width: ${props => props.$width};
+  height: ${props => props.$height};
   display: flex;
   flex-direction: column;
   justify-content: space-between;

@@ -172,6 +172,40 @@ export const crosswordService = {
       console.error('Start edit session error:', error);
       throw error;
     }
+  },
+
+  fetchLibraryCrosswords: async () => {
+    try {
+      const response = await api.get(API_URLS.CROSSWORDS.GET_LIBRARY);
+      
+      if (!response.success || !response.data) {
+        console.error('Invalid library response format:', response);
+        return {
+          success: false,
+          data: {
+            random: [],
+            mostPlayed: [],
+            newest: []
+          }
+        };
+      }
+
+      return {
+        success: true,
+        data: response.data
+      };
+
+    } catch (error) {
+      console.error('Fetch library crosswords error:', error);
+      return {
+        success: false,
+        data: {
+          random: [],
+          mostPlayed: [],
+          newest: []
+        }
+      };
+    }
   }
 };
 

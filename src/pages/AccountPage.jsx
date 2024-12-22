@@ -249,7 +249,11 @@ const AccountPage = () => {
       ) : (
         <ContentWrapper>
           <CrosswordList>
-            <SectionTitle>Danh sách ô chữ của tôi</SectionTitle>
+            <HeaderSection>
+              <SectionTitle>Danh sách ô chữ của tôi</SectionTitle>
+              <TotalItems>Tổng số: <strong>{allCrosswords.length}</strong></TotalItems>
+            </HeaderSection>
+            
             {isLoadingCrosswords ? (
               <LoadingSpinner>Đang tải danh sách ô chữ...</LoadingSpinner>
             ) : (
@@ -263,7 +267,6 @@ const AccountPage = () => {
                           title={crossword.title || 'Ô chữ không có tên'}
                           questionCount={crossword.questionCount || 0}
                           author={crossword.author || 'Ẩn danh'}
-                          width="100%"
                           onClick={() => handleCardClick(crossword)}
                         />
                       );
@@ -450,9 +453,7 @@ const AccountInfo = styled.div`
 const SectionTitle = styled.h2`
   font-size: 1.3rem;
   color: #333;
-  margin-bottom: 15px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  margin: 0;
 `;
 
 const InfoGroup = styled.div`
@@ -622,6 +623,25 @@ const EmptyMessage = styled.div`
   font-size: 1.1rem;
   margin: 40px 0;
   font-style: italic;
+`;
+
+const HeaderSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+`;
+
+const TotalItems = styled.span`
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 500;
+  
+  strong {
+    font-weight: 700;
+  }
 `;
 
 export default memo(AccountPage);
