@@ -11,9 +11,7 @@ const PlayPage = () => {
   const [answer, setAnswer] = useState(''); // Đáp án nhập vào
 
   // Thêm state cho letters
-  const [letters, setLetters] = useState(
-    Array(12).fill(null).map(() => Array(17).fill(''))
-  );
+  const [letters, setLetters] = useState([]);
 
   // Thêm state để quản lý modal
   const [showResetModal, setShowResetModal] = useState(false);
@@ -34,6 +32,9 @@ const PlayPage = () => {
   // Thêm state để quản lý hiệu ứng khung đỏ
   const [showRedBorder, setShowRedBorder] = useState(false);
 
+  const [puzzleTitle, setPuzzleTitle] = useState('Đang tải...');
+  const [numberOfQuestions, setNumberOfQuestions] = useState(0);
+
   useEffect(() => {
     const loadPuzzleData = async () => {
       try {
@@ -48,6 +49,39 @@ const PlayPage = () => {
         }
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
+      }
+    };
+
+    loadPuzzleData();
+  }, []);
+
+  useEffect(() => {
+    const loadPuzzleData = () => {
+      try {
+        const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
+        if (playData?.success && playData?.data) {
+          // Lấy title từ data
+          const title = playData.data.title || 'Ô chữ không có tên';
+          setPuzzleTitle(title.toUpperCase());
+          
+          // Set số câu hỏi
+          setNumberOfQuestions(playData.data.numberOfQuestions);
+          
+          // Khởi tạo lại letters array với số hàng bằng numberOfQuestions
+          setLetters(
+            Array(playData.data.numberOfQuestions)
+              .fill(null)
+              .map(() => Array(17).fill(''))
+          );
+          
+          console.log('Loaded puzzle data:', {
+            title,
+            numberOfQuestions: playData.data.numberOfQuestions
+          });
+        }
+      } catch (error) {
+        console.error('Error loading puzzle data:', error);
+        setPuzzleTitle('Không thể tải dữ liệu');
       }
     };
 
@@ -110,7 +144,7 @@ const PlayPage = () => {
     setKeyword('');
     setIsGameStarted(false); // Quay về trạng thái ban đầu
     // Reset các state khác về giá trị ban đầu
-    setLetters(Array(12).fill(null).map(() => Array(17).fill('')));
+    setLetters(Array(numberOfQuestions).fill(null).map(() => Array(17).fill('')));
   };
 
   // Thêm handler cho từ khóa
@@ -142,7 +176,7 @@ const PlayPage = () => {
     <PlayPageContainer>
       <Banner>
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
-        <PuzzleName>{puzzleData ? puzzleData.name : 'Đang tải...'}</PuzzleName>
+        <PuzzleName>{puzzleTitle}</PuzzleName>
         <StartButton onClick={handleReset}>
           {isGameStarted ? 'Chơi lại từ đầu' : 'Bắt đầu chơi'}
         </StartButton>
@@ -163,7 +197,7 @@ const PlayPage = () => {
       <MainContent>
         <GridWrapper>
           <ButtonColumn>
-            {Array.from({ length: 12 }, (_, index) => (
+            {Array.from({ length: numberOfQuestions }, (_, index) => (
               <RoundButton 
                 key={index} 
                 $isSelected={selectedButton === index}

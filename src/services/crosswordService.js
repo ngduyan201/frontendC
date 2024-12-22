@@ -219,6 +219,16 @@ export const crosswordService = {
       });
       
       console.log('Response từ API startPlay:', response);
+
+      // Lưu toàn bộ response vào localStorage
+      if (response.success) {
+        localStorage.setItem('crosswordPlayData', JSON.stringify({
+          success: response.success,
+          data: response.data,
+          timestamp: new Date().getTime()
+        }));
+      }
+
       return response;
     } catch (error) {
       console.error('Start single play error:', error);
@@ -251,7 +261,12 @@ export const crosswordService = {
   // Thêm method mới
   clearPlaySession: async () => {
     try {
-      const response = await api.post(API_URLS.CROSSWORDS.CLEAR_SESSION);
+      // Gọi API để xóa session
+      const response = await api.post(API_URLS.CROSSWORDS.END_SESSION);
+      
+      // Xóa dữ liệu từ localStorage
+      localStorage.removeItem('crosswordPlayData');
+      
       return response;
     } catch (error) {
       console.error('Clear play session error:', error);
