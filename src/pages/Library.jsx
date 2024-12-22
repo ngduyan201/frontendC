@@ -43,6 +43,7 @@ const Library = () => {
   const handleCardClick = (crossword) => {
     // Format dữ liệu cho modal
     const modalData = {
+      _id: crossword._id,
       name: crossword.title,
       numQuestions: crossword.questionCount,
       author: crossword.author,

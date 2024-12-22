@@ -18,12 +18,12 @@ const Modal = ({ isOpen, onClose, data }) => {
         
         if (currentSession.success) {
           // Nếu đã có session, chuyển thẳng đến trang chơi
-          navigate('/single-play');
+          navigate('/play');
         } else {
           // Nếu chưa có session, tạo mới
           const response = await crosswordService.startSinglePlay(data._id);
           if (response.success) {
-            navigate('/single-play');
+            navigate('/play');
           } else {
             toast.error(response.message || 'Không thể bắt đầu trò chơi');
           }

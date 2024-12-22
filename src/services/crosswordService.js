@@ -210,6 +210,10 @@ export const crosswordService = {
 
   startSinglePlay: async (crosswordId) => {
     try {
+      if (!crosswordId) {
+        throw new Error('ID ô chữ không được để trống');
+      }
+
       const response = await api.post(`${API_URLS.CROSSWORDS.START_PLAY}/${crosswordId}`, {
         mode: 'single'
       });
@@ -220,7 +224,7 @@ export const crosswordService = {
 
       return {
         success: true,
-        data: response.data // Dữ liệu mainKeyword từ BE
+        data: response.data
       };
     } catch (error) {
       console.error('Start single play error:', error);
