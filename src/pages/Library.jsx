@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { crosswordService } from '../services/crosswordService';
 import CrosswordCard from '../components/features/CrosswordCard';
+import InformationModal from '../components/modals/Information';
 import { toast } from 'react-toastify';
 
 const Library = () => {
@@ -12,6 +13,10 @@ const Library = () => {
     newest: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Thêm state cho modal
+  const [selectedCrossword, setSelectedCrossword] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const loadLibraryCrosswords = async () => {
@@ -34,8 +39,24 @@ const Library = () => {
     loadLibraryCrosswords();
   }, []);
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  // Thêm hàm xử lý click vào card
+  const handleCardClick = (crossword) => {
+    // Format dữ liệu cho modal
+    const modalData = {
+      name: crossword.title,
+      numQuestions: crossword.questionCount,
+      author: crossword.author,
+      grade: crossword.grade,
+      subject: crossword.subject
+    };
+    
+    setSelectedCrossword(modalData);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCrossword(null);
   };
 
   return (
@@ -46,7 +67,7 @@ const Library = () => {
           type="text" 
           placeholder="Tìm kiếm ô chữ..." 
           value={searchQuery}
-          onChange={handleSearchChange} 
+          onChange={(e) => setSearchQuery(e.target.value)} 
         />
       </SearchContainer>
 
@@ -59,9 +80,10 @@ const Library = () => {
             {libraryCrosswords.random.map((crossword) => (
               <CrosswordCard 
                 key={crossword._id}
-                title={crossword.title || 'Ô chữ không có tên'}
-                questionCount={crossword.questionCount || 0}
-                author={crossword.author || 'Ẩn danh'}
+                title={crossword.title}
+                questionCount={crossword.questionCount}
+                author={crossword.author}
+                onClick={() => handleCardClick(crossword)}
               />
             ))}
           </CrosswordList>
@@ -75,9 +97,10 @@ const Library = () => {
             {libraryCrosswords.mostPlayed.map((crossword) => (
               <CrosswordCard 
                 key={crossword._id}
-                title={crossword.title || 'Ô chữ không có tên'}
-                questionCount={crossword.questionCount || 0}
-                author={crossword.author || 'Ẩn danh'}
+                title={crossword.title}
+                questionCount={crossword.questionCount}
+                author={crossword.author}
+                onClick={() => handleCardClick(crossword)}
               />
             ))}
           </CrosswordList>
@@ -91,14 +114,24 @@ const Library = () => {
             {libraryCrosswords.newest.map((crossword) => (
               <CrosswordCard 
                 key={crossword._id}
-                title={crossword.title || 'Ô chữ không có tên'}
-                questionCount={crossword.questionCount || 0}
-                author={crossword.author || 'Ẩn danh'}
+                title={crossword.title}
+                questionCount={crossword.questionCount}
+                author={crossword.author}
+                onClick={() => handleCardClick(crossword)}
               />
             ))}
           </CrosswordList>
         </LibraryColumn>
       </LibraryContent>
+
+      {/* Thêm Modal */}
+      {selectedCrossword && (
+        <InformationModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          data={selectedCrossword}
+        />
+      )}
 
       {isLoading && <LoadingSpinner />}
     </LibraryContainer>
