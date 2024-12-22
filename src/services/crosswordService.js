@@ -246,6 +246,17 @@ export const crosswordService = {
       console.error('Get play session error:', error);
       return { success: false };
     }
+  },
+
+  // Thêm method mới
+  clearPlaySession: async () => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.CLEAR_SESSION);
+      return response;
+    } catch (error) {
+      console.error('Clear play session error:', error);
+      throw error;
+    }
   }
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ResetModal, HomeModal } from '../components/modals/PlayModal';
+import { crosswordService } from '../services/crosswordService';
 
 const PlayPage = () => {
   const navigate = useNavigate();
@@ -34,37 +35,23 @@ const PlayPage = () => {
   const [showRedBorder, setShowRedBorder] = useState(false);
 
   useEffect(() => {
-    // Giả sử bạn sẽ gọi API hoặc lấy d liệu từ cơ sở dữ liệu để load tên ô chữ
-    const fetchPuzzleData = async () => {
-      const data = {
-        name: 'Ô chữ thú vị',
-        author: 'Tác giả 1',
-        numQuestions: 5,
-      };
-      setPuzzleData(data);
+    const loadPuzzleData = async () => {
+      try {
+        // Chỉ cần đọc session đã được tạo
+        const currentSession = crosswordService.getCurrentPlaySession();
+        console.log('Session hiện tại:', currentSession);
+
+        if (currentSession.success) {
+          console.log('Dữ liệu từ session:', currentSession.data);
+          setPuzzleData(currentSession.data);
+          initializeLettersFromKeyword(currentSession.data.mainKeyword[0]);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+      }
     };
 
-    // Giả lập lấy câu hỏi từ cơ sở dữ liệu
-    const fetchQuestionData = async () => {
-      const question = "Câu hỏi: Tên thành phố lớn nhất Việt Nam là gì?"; // Ví dụ câu hỏi
-      setQuestionData(question);
-    };
-
-    // Giả lập dữ liệu letters (có thể thay bằng API call sau này)
-    const initializeLetters = () => {
-      const initialLetters = Array(12).fill(null).map(() => Array(17).fill(''));
-      // Có thể thêm một số chữ mẫu để test
-      // initialLetters[0][0] = 'H';
-      // initialLetters[0][1] = 'E';
-      // initialLetters[0][2] = 'L';
-      // initialLetters[0][3] = 'L';
-      // initialLetters[0][4] = 'O';
-      setLetters(initialLetters);
-    };
-
-    fetchPuzzleData();
-    fetchQuestionData();
-    initializeLetters();
+    loadPuzzleData();
   }, []);
 
   // Hàm điều hướng về trang chủ
@@ -76,9 +63,17 @@ const PlayPage = () => {
     setShowHomeModal(false);
   };
 
-  const handleConfirmGoHome = () => {
-    setShowHomeModal(false);
-    navigate('/library');
+  const handleConfirmGoHome = async () => {
+    try {
+      // Gọi API để xóa session
+      await crosswordService.clearPlaySession();
+      setShowHomeModal(false);
+      navigate('/library');
+    } catch (error) {
+      console.error('Error clearing session:', error);
+      setShowHomeModal(false);
+      navigate('/library');
+    }
   };
 
   // Hàm điều hướng đến phần trả lời từ khoá

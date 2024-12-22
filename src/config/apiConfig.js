@@ -23,6 +23,7 @@ export const API_URLS = {
     GET_SESSION: '/crosswords/session',
     SAVE_SESSION: '/crosswords/save',
     END_SESSION: '/crosswords/end-session',
+    CLEAR_SESSION: '/crosswords/clear-session',
     SAVE_CROSSWORD: '/crosswords/save-crossword',
     GET_USER_CROSSWORDS: '/crosswords/user',
     START_EDIT: '/crosswords/edit',
