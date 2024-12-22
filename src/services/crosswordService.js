@@ -138,56 +138,28 @@ export const crosswordService = {
     }
   },
 
-  fetchCrosswords: async (page = 1, limit = 6) => {
+  fetchCrosswords: async () => {
     try {
-      const response = await api.get(API_URLS.CROSSWORDS.GET_USER_CROSSWORDS, {
-        params: {
-          page,
-          limit
-        }
-      });
+      const response = await api.get(API_URLS.CROSSWORDS.GET_USER_CROSSWORDS);
       
-      console.log('Raw API response:', response);
-
-      // Kiểm tra response là một mảng
-      const crosswordsData = response.data;
-      if (!Array.isArray(crosswordsData)) {
-        console.error('Response is not an array:', crosswordsData);
+      if (!response.success || !Array.isArray(response.data)) {
+        console.error('Invalid response format:', response);
         return {
-          data: [],
-          totalPages: 1,
-          success: false
+          success: false,
+          data: []
         };
       }
 
-      // Format data trực tiếp từ mảng
-      const formattedData = crosswordsData.map(item => ({
-        _id: item._id,
-        title: item.title,
-        questionCount: item.questionCount,
-        author: item.author,
-        // Thêm các trường mới nhưng chưa hiển thị
-        status: item.status,
-        subject: item.subject,
-        grade: item.grade
-      }));
-
-      // Tính totalPages dựa trên độ dài mảng và limit
-      const totalItems = crosswordsData.length;
-      const totalPages = Math.ceil(totalItems / limit);
-
       return {
-        data: formattedData,
-        totalPages: totalPages,
-        success: true
+        success: true,
+        data: response.data
       };
 
     } catch (error) {
       console.error('Fetch crosswords error:', error);
       return {
-        data: [],
-        totalPages: 1,
-        success: false
+        success: false,
+        data: []
       };
     }
   },

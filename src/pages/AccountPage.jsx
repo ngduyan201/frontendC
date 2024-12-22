@@ -32,9 +32,10 @@ const AccountPage = () => {
     createdAt: '',
     updatedAt: ''
   });
+  const [allCrosswords, setAllCrosswords] = useState([]);
   const [crosswords, setCrosswords] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(5);
+  const [itemsPerPage] = useState(6);
   const [isLoadingCrosswords, setIsLoadingCrosswords] = useState(false);
   const [selectedCrossword, setSelectedCrossword] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -104,12 +105,11 @@ const AccountPage = () => {
   const loadCrosswords = useCallback(async () => {
     setIsLoadingCrosswords(true);
     try {
-      const response = await crosswordService.fetchCrosswords(page, 5);
-      if (response.success && Array.isArray(response.data)) {
-        setCrosswords(response.data);
-        if (response.pagination && response.pagination.totalPages) {
-          setTotalPages(response.pagination.totalPages);
-        }
+      const response = await crosswordService.fetchCrosswords();
+      if (response.success) {
+        setAllCrosswords(response.data);
+      } else {
+        toast.error('Không thể tải danh sách ô chữ');
       }
     } catch (error) {
       console.error('Error loading crosswords:', error);
@@ -117,11 +117,17 @@ const AccountPage = () => {
     } finally {
       setIsLoadingCrosswords(false);
     }
-  }, [page]);
+  }, []);
 
   useEffect(() => {
     loadCrosswords();
   }, [loadCrosswords]);
+
+  useEffect(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setCrosswords(allCrosswords.slice(startIndex, endIndex));
+  }, [page, allCrosswords, itemsPerPage]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -234,6 +240,8 @@ const AccountPage = () => {
     }
   }, [selectedCrossword, loadCrosswords, handleCloseModal]);
 
+  const totalPages = Math.ceil(allCrosswords.length / itemsPerPage);
+
   return (
     <PageContainer>
       {isLoadingProfile ? (
@@ -249,7 +257,6 @@ const AccountPage = () => {
                 <CrosswordGrid>
                   {crosswords.length > 0 ? (
                     crosswords.map((crossword) => {
-                      console.log('Rendering crossword:', crossword);
                       return (
                         <CrosswordCard
                           key={crossword._id}
