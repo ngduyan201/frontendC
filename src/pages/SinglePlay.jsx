@@ -1,4 +1,3 @@
-// PlayPage.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +11,7 @@ const PlayPage = () => {
 
   // Thêm state cho letters
   const [letters, setLetters] = useState(
-    Array(12).fill(null).map(() => Array(16).fill(''))
+    Array(12).fill(null).map(() => Array(17).fill(''))
   );
 
   // Thêm state để quản lý modal
@@ -53,7 +52,7 @@ const PlayPage = () => {
 
     // Giả lập dữ liệu letters (có thể thay bằng API call sau này)
     const initializeLetters = () => {
-      const initialLetters = Array(12).fill(null).map(() => Array(16).fill(''));
+      const initialLetters = Array(12).fill(null).map(() => Array(17).fill(''));
       // Có thể thêm một số chữ mẫu để test
       // initialLetters[0][0] = 'H';
       // initialLetters[0][1] = 'E';
@@ -116,7 +115,7 @@ const PlayPage = () => {
     setKeyword('');
     setIsGameStarted(false); // Quay về trạng thái ban đầu
     // Reset các state khác về giá trị ban đầu
-    setLetters(Array(12).fill(null).map(() => Array(16).fill('')));
+    setLetters(Array(12).fill(null).map(() => Array(17).fill('')));
   };
 
   // Thêm handler cho từ khóa
@@ -144,45 +143,14 @@ const PlayPage = () => {
     setIsAnswering(false);
   };
 
-  const FormHeader = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 10px;
-  `;
-
-  const FormTitle = styled.h2`
-    font-size: 1.2rem;
-    color: #333;
-    font-weight: 500;
-    text-align: left;
-    margin: 0;
-  `;
-
-  const SubmitButton = styled.button`
-    background-color: ${props => props.disabled ? '#ccc' : '#333'};
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-      background-color: ${props => props.disabled ? '#ccc' : '#444'};
-    }
-  `;
-
-  return (
+    return (
     <PlayPageContainer>
       <Banner>
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
         <PuzzleName>{puzzleData ? puzzleData.name : 'Đang tải...'}</PuzzleName>
-        <ResetButton onClick={handleReset}>
+        <StartButton onClick={handleReset}>
           {isGameStarted ? 'Chơi lại từ đầu' : 'Bắt đầu chơi'}
-        </ResetButton>
+        </StartButton>
       </Banner>
 
       <ResetModal 
@@ -203,7 +171,7 @@ const PlayPage = () => {
             {Array.from({ length: 12 }, (_, index) => (
               <RoundButton 
                 key={index} 
-                isSelected={selectedButton === index}
+                $isSelected={selectedButton === index}
                 onClick={() => handleButtonClick(index)}
                 disabled={!isGameStarted}
               >
@@ -214,11 +182,17 @@ const PlayPage = () => {
 
           <GridContainer>
             {letters.map((row, rowIndex) => (
-              row.map((letter, colIndex) => (
-                <GridItem key={`${rowIndex}-${colIndex}`}>
-                  {letter && <Letter>{letter}</Letter>}
-                </GridItem>
-              ))
+              <GridRow key={rowIndex}>
+                {row.map((letter, colIndex) => (
+                  <GridCell 
+                    key={`${rowIndex}-${colIndex}`}
+                    $isKeywordColumn={colIndex === 8}
+                    $hasLetter={letter !== ''}
+                  >
+                    {letter && <Letter>{letter}</Letter>}
+                  </GridCell>
+                ))}
+              </GridRow>
             ))}
           </GridContainer>
         </GridWrapper>
@@ -252,7 +226,7 @@ const PlayPage = () => {
               onChange={handleAnswerChange} 
               placeholder="Nhập câu trả lời ở đây..."
               disabled={!isGameStarted || selectedButton === null}
-              showRedBorder={showRedBorder}
+              $showRedBorder={showRedBorder}
             />
           </AnswerForm>
 
@@ -284,6 +258,36 @@ export default PlayPage;
 
 // Styled-components
 
+const FormHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+`;
+
+const FormTitle = styled.h3`
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 500;
+`;
+
+const SubmitButton = styled.button`
+  background-color: ${props => props.disabled ? '#ccc' : '#4CAF50'};
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: ${props => props.disabled ? '#ccc' : '#45a049'};
+  }
+`;
+
 const PlayPageContainer = styled.div`
   font-family: Arial, sans-serif;
   min-height: 100vh;
@@ -296,38 +300,55 @@ const Banner = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
+  padding: 10px 60px;
   background-color: #f1f1f1;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
+  height: 80px;
 `;
 
 const BackButton = styled.button`
   background-color: #333;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  min-width: 150px;
+  min-width: 120px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 
   &:hover {
     background-color: #444;
   }
 `;
 
+const StartButton = styled(BackButton)`
+  background-color: #FFA500;
+`;
+
 const PuzzleName = styled.h1`
   flex: 1;
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 2.5rem;
   color: #333;
-  margin: 0 20px;
+  margin: 0 40px;
+  font-weight: bold;
 `;
 
-const ResetButton = styled(BackButton)`
-  // Kế thừa style từ BackButton
+const MainContent = styled.div`
+  display: flex;
+  gap: 30px;
+  padding: 20px 40px 20px 20px;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  max-width: 1600px;
+  margin: 0 auto;
 `;
 
 const GridWrapper = styled.div`
@@ -343,7 +364,7 @@ const ButtonColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin-right: 2px;
+  margin-right: 15px;
 `;
 
 const RoundButton = styled.button`
@@ -353,9 +374,9 @@ const RoundButton = styled.button`
   border-radius: 50%;
   background-color: ${props => 
     props.disabled ? '#ccc' : 
-    props.isSelected ? '#FFD700' : '#008080'
+    props.$isSelected ? '#FFD700' : '#008080'
   };
-  color: ${props => props.isSelected ? '#000' : '#fff'};
+  color: ${props => props.$isSelected ? '#000' : '#fff'};
   border: none;
   font-size: 1.2rem;
   display: flex;
@@ -368,135 +389,45 @@ const RoundButton = styled.button`
   &:hover {
     background-color: ${props => 
       props.disabled ? '#ccc' : 
-      props.isSelected ? '#FFD700' : '#006666'
+      props.$isSelected ? '#FFD700' : '#006666'
     };
-    opacity: ${props => props.isSelected ? 1 : 0.9};
+    opacity: ${props => props.$isSelected ? 1 : 0.9};
   }
 `;
 
 const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(16, 48px);
-  grid-template-rows: repeat(12, 48px);
+  display: flex;
+  flex-direction: column;
   gap: 1px;
-  box-sizing: border-box;
-  margin: 0 auto;
+  background-color: #f0f0f0;
+  padding: 1px;
+  border-radius: 4px;
 `;
 
-const GridItem = styled.div`
+const GridRow = styled.div`
+  display: flex;
+  gap: 1px;
+`;
+
+const GridCell = styled.div`
+  width: 48px;
+  height: 48px;
+  border: 1px solid ${props => props.$hasLetter ? '#ccc' : '#fff'};
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f9f9f9;
-  border: 2px solid #333;
-  border-radius: 4px;
-  height: 46px;
-  width: 46px;
-  box-sizing: border-box;
-  opacity: 0.9;
-  margin: 0;
-
-  &:nth-child(odd) {
-    background-color: #eee;
-  }
-
-  &:hover {
-    border-color: #000;
-    opacity: 1;
-  }
+  position: relative;
+  background-color: ${props => {
+    if (props.$isKeywordColumn) return '#FFF3E0';
+    if (props.$hasLetter) return '#E3F2FD';
+    return 'white';
+  }};
 `;
 
 const Letter = styled.span`
   font-size: 1.7rem;
   color: #222;
   font-weight: bold;
-`;
-
-const QuestionForm = styled.div`
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  flex: 1;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const QuestionBox = styled.div`
-  background-color: #e8e8e8;
-  padding: 20px;
-  border-radius: 4px;
-  font-size: 1.4rem;
-  color: #555;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  border: 1px solid #ccc;
-  margin-top: 10px;
-  line-height: 1.5;
-`;
-
-const AnswerForm = styled.div`
-  background-color: #f1f1f1;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  flex: 0.6;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const InputBox = styled.input`
-  width: 100%;
-  padding: 12px;
-  font-size: 1.4rem;
-  border-radius: 8px;
-  border: 1px solid ${props => {
-    if (props.showRedBorder) return 'red';
-    if (props.disabled) return '#ccc';
-    return '#ccc';
-  }};
-  box-sizing: border-box;
-  outline: none;
-  margin-top: 10px;
-  height: 60px;
-  max-height: 60px;
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 1px;
-  background-color: ${props => props.disabled ? '#f5f5f5' : 'white'};
-  cursor: ${props => props.disabled ? 'not-allowed' : 'text'};
-
-  &:focus {
-    border-color: ${props => {
-      if (props.showRedBorder) return 'red';
-      if (props.disabled) return '#ccc';
-      return '#333';
-    }};
-  }
-
-  &::placeholder {
-    font-size: 1.1rem;
-    text-transform: none;
-    font-weight: normal;
-    color: ${props => props.disabled ? '#999' : '#666'};
-  }
-`;
-
-const MainContent = styled.div`
-  display: flex;
-  gap: 30px;
-  padding: 20px 40px;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-  justify-content: center;
-  max-width: 1600px;
-  margin: 0 auto;
 `;
 
 const RightPanel = styled.div`
@@ -508,13 +439,67 @@ const RightPanel = styled.div`
   max-width: 500px;
 `;
 
-const KeywordForm = styled.div`
+const QuestionForm = styled.div`
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  flex: 0.6;
-  min-height: 120px;
+  flex: 2;
+  min-height: 300px;
   display: flex;
   flex-direction: column;
+`;
+
+const QuestionBox = styled.div`
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  font-size: 1.6rem;
+  line-height: 1.8;
+  color: #333;
+  flex: 1;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+`;
+
+const AnswerForm = styled.div`
+  background-color: #f1f1f1;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-height: 150px;
+`;
+
+const KeywordForm = styled(AnswerForm)``;
+
+const InputBox = styled.input`
+  width: 100%;
+  padding: 15px;
+  font-size: 1.6rem;
+  border-radius: 8px;
+  border: 1px solid ${props => props.$showRedBorder ? '#ff4d4d' : '#ccc'};
+  box-sizing: border-box;
+  outline: none;
+  margin-top: 10px;
+  height: 60px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  background-color: ${props => props.disabled ? '#f5f5f5' : 'white'};
+  cursor: ${props => props.disabled ? 'not-allowed' : 'text'};
+
+  &:focus {
+    border-color: ${props => props.$showRedBorder ? '#ff4d4d' : '#333'};
+  }
+
+  &::placeholder {
+    font-size: 1.2rem;
+    font-weight: normal;
+    color: #999;
+  }
 `;
