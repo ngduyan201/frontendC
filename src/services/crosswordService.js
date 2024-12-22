@@ -206,6 +206,51 @@ export const crosswordService = {
         }
       };
     }
+  },
+
+  startSinglePlay: async (crosswordId) => {
+    try {
+      const response = await api.post(`${API_URLS.CROSSWORDS.START_PLAY}/${crosswordId}`, {
+        mode: 'single'
+      });
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Không thể bắt đầu phiên chơi');
+      }
+
+      return {
+        success: true,
+        data: response.data // Dữ liệu mainKeyword từ BE
+      };
+    } catch (error) {
+      console.error('Start single play error:', error);
+      return {
+        success: false,
+        message: error.message || 'Có lỗi xảy ra khi bắt đầu phiên chơi'
+      };
+    }
+  },
+
+  // Thêm method mới để kiểm tra play session
+  getCurrentPlaySession: () => {
+    try {
+      const cookies = document.cookie.split(';');
+      const playSession = cookies.find(cookie => cookie.trim().startsWith('playSession='));
+      
+      if (!playSession) {
+        return { success: false };
+      }
+
+      // Parse cookie value
+      const sessionData = JSON.parse(playSession.split('=')[1]);
+      return { 
+        success: true,
+        data: sessionData
+      };
+    } catch (error) {
+      console.error('Get play session error:', error);
+      return { success: false };
+    }
   }
 };
 

@@ -27,6 +27,7 @@ export const API_URLS = {
     GET_USER_CROSSWORDS: '/crosswords/user',
     START_EDIT: '/crosswords/edit',
     GET_LIBRARY: '/crosswords/library',
+    START_PLAY: '/crosswords/play',
   }
 }; 
 

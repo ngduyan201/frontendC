@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { crosswordService } from '../../services/crosswordService';
+import { toast } from 'react-toastify';
 
 const Modal = ({ isOpen, onClose, data }) => {
   const navigate = useNavigate();
@@ -8,21 +10,30 @@ const Modal = ({ isOpen, onClose, data }) => {
 
   if (!isOpen) return null;
 
-  const handlePlayClick = () => {
-    switch(gameMode) {
-      case 'solo':
-        navigate('/play');
-        break;
-      case 'team':
-        navigate('/team-play');
-        break;
-      case 'code':
-        navigate('/code-play');
-        break;
-      default:
-        navigate('/play');
+  const handlePlayClick = async () => {
+    try {
+      if (gameMode === 'solo') {
+        // Kiểm tra session trực tiếp từ cookie
+        const currentSession = crosswordService.getCurrentPlaySession();
+        
+        if (currentSession.success) {
+          // Nếu đã có session, chuyển thẳng đến trang chơi
+          navigate('/single-play');
+        } else {
+          // Nếu chưa có session, tạo mới
+          const response = await crosswordService.startSinglePlay(data._id);
+          if (response.success) {
+            navigate('/single-play');
+          } else {
+            toast.error(response.message || 'Không thể bắt đầu trò chơi');
+          }
+        }
+      }
+      onClose();
+    } catch (error) {
+      console.error('Start game error:', error);
+      toast.error('Có lỗi xảy ra khi bắt đầu trò chơi');
     }
-    onClose();
   };
 
   return (
