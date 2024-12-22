@@ -15,19 +15,15 @@ const Modal = ({ isOpen, onClose, data }) => {
       if (gameMode === 'solo') {
         // Kiểm tra session trực tiếp từ cookie
         const currentSession = crosswordService.getCurrentPlaySession();
-        
-        if (currentSession.success) {
-          // Nếu đã có session, chuyển thẳng đến trang chơi
-          navigate('/play');
-        } else {
-          // Nếu chưa có session, tạo mới
+        // Nếu chưa có session, tạo mới sau khi đã navigate
+        if (!currentSession.success) {
           const response = await crosswordService.startSinglePlay(data._id);
-          if (response.success) {
-            navigate('/play');
-          } else {
+          if (!response.success) {
             toast.error(response.message || 'Không thể bắt đầu trò chơi');
           }
         }
+        
+        navigate('/play');
       }
       onClose();
     } catch (error) {

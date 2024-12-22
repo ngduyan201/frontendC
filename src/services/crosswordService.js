@@ -208,30 +208,21 @@ export const crosswordService = {
     }
   },
 
-  startSinglePlay: async (crosswordId) => {
+  startSinglePlay: async (id) => {
     try {
-      if (!crosswordId) {
+      if (!id) {
         throw new Error('ID ô chữ không được để trống');
       }
 
-      const response = await api.post(`${API_URLS.CROSSWORDS.START_PLAY}/${crosswordId}`, {
+      const response = await api.post(API_URLS.CROSSWORDS.START_PLAY(id), {
         mode: 'single'
       });
       
-      if (!response.success) {
-        throw new Error(response.message || 'Không thể bắt đầu phiên chơi');
-      }
-
-      return {
-        success: true,
-        data: response.data
-      };
+      console.log('Response từ API startPlay:', response);
+      return response;
     } catch (error) {
       console.error('Start single play error:', error);
-      return {
-        success: false,
-        message: error.message || 'Có lỗi xảy ra khi bắt đầu phiên chơi'
-      };
+      throw error;
     }
   },
 
