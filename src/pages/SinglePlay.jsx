@@ -35,6 +35,8 @@ const PlayPage = () => {
   const [puzzleTitle, setPuzzleTitle] = useState('Đang tải...');
   const [numberOfQuestions, setNumberOfQuestions] = useState(0);
 
+  const [questions, setQuestions] = useState([]);
+
   useEffect(() => {
     const loadPuzzleData = async () => {
       try {
@@ -74,9 +76,13 @@ const PlayPage = () => {
               .map(() => Array(17).fill(''))
           );
           
+          // Lưu thông tin câu hỏi từ đúng vị trí trong data
+          setQuestions(playData.data.mainKeyword[0].associatedHorizontalKeywords || []);
+          
           console.log('Loaded puzzle data:', {
             title,
-            numberOfQuestions: playData.data.numberOfQuestions
+            numberOfQuestions: playData.data.numberOfQuestions,
+            questions: playData.data.mainKeyword[0].associatedHorizontalKeywords
           });
         }
       } catch (error) {
@@ -172,7 +178,20 @@ const PlayPage = () => {
     setIsAnswering(false);
   };
 
-    return (
+  // Hàm kiểm tra ô có được tô màu không
+  const shouldHighlight = (rowIndex, colIndex) => {
+    if (colIndex === 8) return false; // Không tô cột từ khóa
+    
+    const question = questions[rowIndex];
+    if (!question) return false;
+
+    const startCol = question.columnPosition;
+    const endCol = startCol + question.numberOfCharacters;
+    
+    return colIndex >= startCol && colIndex < endCol;
+  };
+
+  return (
     <PlayPageContainer>
       <Banner>
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
@@ -217,6 +236,8 @@ const PlayPage = () => {
                     key={`${rowIndex}-${colIndex}`}
                     $isKeywordColumn={colIndex === 8}
                     $hasLetter={letter !== ''}
+                    $isHighlighted={shouldHighlight(rowIndex, colIndex)}
+                    $isGameStarted={isGameStarted}
                   >
                     {letter && <Letter>{letter}</Letter>}
                   </GridCell>
@@ -441,14 +462,19 @@ const GridRow = styled.div`
 const GridCell = styled.div`
   width: 48px;
   height: 48px;
-  border: 1px solid ${props => props.$hasLetter ? '#ccc' : '#fff'};
+  border: 1px solid ${props => {
+    if ((props.$isHighlighted || props.$isKeywordColumn) && props.$isGameStarted) return '#000';
+    if (props.$hasLetter) return '#ccc';
+    return '#fff';
+  }};
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   background-color: ${props => {
     if (props.$isKeywordColumn) return '#FFF3E0';
-    if (props.$hasLetter) return '#E3F2FD';
+    if (props.$isHighlighted) return '#E3F2FD';
+    if (props.$hasLetter) return '#fff';
     return 'white';
   }};
 `;
