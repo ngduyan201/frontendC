@@ -10,7 +10,6 @@ const PlayPage = () => {
   const [questionData, setQuestionData] = useState(''); // Dữ liệu câu hỏi
   const [answer, setAnswer] = useState(''); // Đáp án nhập vào
   const [selectedButton, setSelectedButton] = useState(null); // Button được chọn
-  const [answers, setAnswers] = useState({}); // Object lưu đáp án theo số câu hỏi
 
   // Thêm state cho letters
   const [letters, setLetters] = useState([]);
@@ -35,6 +34,9 @@ const PlayPage = () => {
   const [numberOfQuestions, setNumberOfQuestions] = useState(0);
 
   const [questions, setQuestions] = useState([]);
+
+  // Lưu trữ tất cả đáp án đã nhập để kiểm tra tiến độ hoàn thành
+  const [answers, setAnswers] = useState({});
 
   // Tạo closure để lưu và truy xuất secretKey
   const secretKeyManager = useMemo(() => {
@@ -141,13 +143,6 @@ const PlayPage = () => {
     if (expectedLength && value.length <= expectedLength) {
       setAnswer(value);
       setIsAnswering(true);
-
-      if (selectedButton !== null) {
-        setAnswers(prev => ({
-          ...prev,
-          [selectedButton]: value
-        }));
-      }
     }
   };
 
