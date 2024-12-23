@@ -1,9 +1,36 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ResetModal, HomeModal } from '../components/modals/PlayModal';
 import { crosswordService } from '../services/crosswordService';
 import CryptoJS from 'crypto-js';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Thêm GlobalStyle để tùy chỉnh toast
+const ToastStyle = createGlobalStyle`
+  .Toastify__toast-container {
+    width: auto;
+    max-width: 800px;
+    padding: 0;
+    margin-top: 25vh !important;
+  }
+  
+  .Toastify__toast {
+    font-size: 2rem;
+    min-height: 80px;
+    padding: 20px 40px;
+  }
+
+  .Toastify__toast-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .Toastify__progress-bar {
+    height: 5px;
+  }
+`;
 
 const PlayPage = () => {
   const navigate = useNavigate();
@@ -202,9 +229,14 @@ const PlayPage = () => {
     });
   };
 
+  // Thêm state mới
+  const [isKeywordInputDisabled, setIsKeywordInputDisabled] = useState(false);
+
   // Hàm xử lý submit từ khóa
   const handleKeywordSubmit = async () => {
     try {
+      setIsKeywordInputDisabled(true);
+
       const key = secretKeyManager.getKey();
       if (!key) {
         console.error('Secret key not found');
@@ -212,36 +244,46 @@ const PlayPage = () => {
       }
 
       const userKeyword = keyword.toUpperCase();
-      // Lấy keyword được mã hóa từ đúng vị trí trong mainKeyword array
       const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
       const encryptedKeyword = playData.data.mainKeyword[0].keyword;
-      
-      console.log('Encrypted keyword:', encryptedKeyword);
 
       try {
         const bytes = CryptoJS.AES.decrypt(encryptedKeyword, key);
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
-        
-        console.log('Decrypted keyword:', correctKeyword);
-        console.log('User keyword:', userKeyword);
 
         if (userKeyword === correctKeyword) {
-          console.log('Từ khóa đúng!');
+          toast.success('Từ khóa chính xác!', {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: false,
+            progress: undefined,
+          });
           displayKeywordOnGrid(userKeyword);
-          // Có thể thêm thông báo thành công ở đây
         } else {
-          console.log('Từ khóa sai!');
-          setShowRedBorder(true);
-          setTimeout(() => {
-            setShowRedBorder(false);
-          }, 3000);
+          toast.error('Từ khóa không chính xác!', {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: false,
+            progress: undefined,
+          });
         }
       } catch (decryptError) {
         console.error('Error decrypting keyword:', decryptError);
       }
 
+      setTimeout(() => {
+        setIsKeywordInputDisabled(false);
+      }, 3000);
+
     } catch (error) {
       console.error('Error processing keyword:', error);
+      setIsKeywordInputDisabled(false);
     }
   };
 
@@ -325,7 +367,15 @@ const PlayPage = () => {
       const isCorrect = currentAnswer === correctAnswer;
 
       if (isCorrect) {
-        console.log('Câu trả lời đúng!');
+        toast.success('Chính xác!', {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: false,
+          progress: undefined,
+        });
         setAnswers(prev => ({
           ...prev,
           [selectedButton]: currentAnswer
@@ -336,7 +386,15 @@ const PlayPage = () => {
         
         setIsAnswering(false);
       } else {
-        console.log('Câu trả lời sai!');
+        toast.error(`Sai rồi! Bạn còn ${1 - (submitCounts[selectedButton] || 0)} lần thử còn lại`, {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: false,
+          progress: undefined,
+        });
         // Tăng số lần submit và kiểm tra giới hạn
         setSubmitCounts(prev => {
           const newCount = (prev[selectedButton] || 0) + 1;
@@ -405,6 +463,20 @@ const PlayPage = () => {
 
   return (
     <PlayPageContainer>
+      <ToastStyle />
+      <ToastContainer
+        position="top-center"
+        autoClose={2000}
+        limit={3}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable={false}
+        pauseOnHover
+        theme="colored"
+      />
       <Banner>
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
         <PuzzleName>{puzzleTitle}</PuzzleName>
@@ -515,7 +587,7 @@ const PlayPage = () => {
               <FormTitle>Từ khóa</FormTitle>
               <SubmitButton 
                 onClick={handleKeywordSubmit}
-                disabled={!isGameStarted || !checkKeywordLength()}
+                disabled={!isGameStarted || !checkKeywordLength() || isKeywordInputDisabled}
               >
                 Xác nhận
               </SubmitButton>
@@ -525,11 +597,13 @@ const PlayPage = () => {
               placeholder={
                 !isGameStarted 
                   ? "Vui lòng bắt đầu chơi..."
-                  : `Nhập từ khóa ${keyword.length}/${numberOfQuestions} ký tự...`
+                  : isKeywordInputDisabled
+                    ? "Vui lòng đợi..."
+                    : `Nhập từ khóa ${keyword.length}/${numberOfQuestions} ký tự...`
               }
               value={keyword}
               onChange={handleKeywordChange}
-              disabled={!isGameStarted}
+              disabled={!isGameStarted || isKeywordInputDisabled}
               $showRedBorder={showRedBorder}
             />
           </KeywordForm>
