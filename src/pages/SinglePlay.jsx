@@ -72,7 +72,6 @@ const PlayPage = () => {
   useEffect(() => {
     const loadPuzzleData = async () => {
       try {
-        // Chỉ cần đọc session đã được tạo
         const currentSession = crosswordService.getCurrentPlaySession();
         console.log('Session hiện tại:', currentSession);
 
@@ -156,15 +155,19 @@ const PlayPage = () => {
 
   const handleAnswerChange = (e) => {
     const value = e.target.value.toUpperCase();
-    setAnswer(value);
-    setIsAnswering(true);
+    const expectedLength = questions[selectedButton]?.numberOfCharacters;
+    
+    // Chỉ cho phép nhập đến độ dài tối đa
+    if (expectedLength && value.length <= expectedLength) {
+      setAnswer(value);
+      setIsAnswering(true);
 
-    // Lưu đáp án vào object answers với key là số câu hỏi
-    if (selectedButton !== null) {
-      setAnswers(prev => ({
-        ...prev,
-        [selectedButton]: value
-      }));
+      if (selectedButton !== null) {
+        setAnswers(prev => ({
+          ...prev,
+          [selectedButton]: value
+        }));
+      }
     }
   };
 
@@ -196,7 +199,70 @@ const PlayPage = () => {
 
   // Thêm handler cho từ khóa
   const handleKeywordChange = (e) => {
-    setKeyword(e.target.value.toUpperCase());
+    const value = e.target.value.toUpperCase();
+    // Chỉ cho phép nhập đến độ dài bằng số câu hỏi
+    if (value.length <= numberOfQuestions) {
+      setKeyword(value);
+    }
+  };
+
+  // Hàm kiểm tra độ dài từ khóa
+  const checkKeywordLength = () => {
+    return keyword.length === numberOfQuestions;
+  };
+
+  // Hàm hiển thị từ khóa lên grid
+  const displayKeywordOnGrid = (keyword) => {
+    setLetters(prevLetters => {
+      const newLetters = [...prevLetters];
+      [...keyword].forEach((char, index) => {
+        if (newLetters[index]) {
+          newLetters[index][8] = char; // Cột 8 là cột giữa (màu vàng)
+        }
+      });
+      return newLetters;
+    });
+  };
+
+  // Hàm xử lý submit từ khóa
+  const handleKeywordSubmit = async () => {
+    try {
+      const key = secretKeyManager.getKey();
+      if (!key) {
+        console.error('Secret key not found');
+        return;
+      }
+
+      const userKeyword = keyword.toUpperCase();
+      // Lấy keyword từ đúng vị trí trong cấu trúc dữ liệu
+      const correctEncrypted = puzzleData.mainKeyword[0].associatedHorizontalKeywords[0].keyword;
+      
+      console.log('Encrypted keyword:', correctEncrypted);
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(correctEncrypted, key);
+        const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
+        
+        console.log('Decrypted keyword:', correctKeyword);
+        console.log('User keyword:', userKeyword);
+
+        if (userKeyword === correctKeyword) {
+          console.log('Từ khóa đúng!');
+          displayKeywordOnGrid(userKeyword);
+        } else {
+          console.log('Từ khóa sai!');
+          setShowRedBorder(true);
+          setTimeout(() => {
+            setShowRedBorder(false);
+          }, 3000);
+        }
+      } catch (decryptError) {
+        console.error('Error decrypting keyword:', decryptError);
+      }
+
+    } catch (error) {
+      console.error('Error processing keyword:', error);
+    }
   };
 
   // Thêm hàm xử lý khi click button
@@ -229,9 +295,23 @@ const PlayPage = () => {
     });
   };
 
+  // Thêm state để theo dõi số lần submit của mỗi câu hỏi
+  const [submitCounts, setSubmitCounts] = useState({});
+
+  // Hàm kiểm tra số lần submit
+  const checkSubmitLimit = (questionIndex) => {
+    return (submitCounts[questionIndex] || 0) >= 2;
+  };
+
   // Xử lý khi submit câu trả lời
   const handleAnswerSubmit = () => {
     if (selectedButton === null) return;
+
+    // Kiểm tra giới hạn submit
+    if (checkSubmitLimit(selectedButton)) {
+      console.log('Đã hết lượt trả lời cho câu này');
+      return;
+    }
 
     try {
       const key = secretKeyManager.getKey();
@@ -245,30 +325,29 @@ const PlayPage = () => {
       const currentAnswer = answer.toUpperCase();
       const correctEncrypted = questions[selectedButton]?.answer;
 
-      // Giải mã đáp án từ database
       const bytes = CryptoJS.AES.decrypt(correctEncrypted, key);
       const correctAnswer = bytes.toString(CryptoJS.enc.Utf8);
 
-      console.log('User answer:', currentAnswer);
-      console.log('Correct answer:', correctAnswer);
-
-      // So sánh trực tiếp sau khi giải mã
       const isCorrect = currentAnswer === correctAnswer;
 
       if (isCorrect) {
         console.log('Câu trả lời đúng!');
-        // Lưu đáp án
         setAnswers(prev => ({
           ...prev,
           [selectedButton]: currentAnswer
         }));
         
-        // Hiển thị đáp án lên grid
         const startColumn = questions[selectedButton].columnPosition;
         displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
         
       } else {
         console.log('Câu trả lời sai!');
+        // Tăng số lần submit cho câu hỏi hiện tại
+        setSubmitCounts(prev => ({
+          ...prev,
+          [selectedButton]: (prev[selectedButton] || 0) + 1
+        }));
+        
         setShowRedBorder(true);
         setTimeout(() => {
           setShowRedBorder(false);
@@ -294,6 +373,13 @@ const PlayPage = () => {
     const endCol = startCol + question.numberOfCharacters;
     
     return colIndex >= startCol && colIndex < endCol;
+  };
+
+  // Hàm kiểm tra độ dài câu trả lời
+  const checkAnswerLength = () => {
+    if (selectedButton === null) return false;
+    const expectedLength = questions[selectedButton]?.numberOfCharacters;
+    return answer.length === expectedLength;
   };
 
   return (
@@ -370,7 +456,12 @@ const PlayPage = () => {
               <FormTitle>Nhập đáp án</FormTitle>
               <SubmitButton 
                 onClick={handleAnswerSubmit}
-                disabled={!isGameStarted || selectedButton === null}
+                disabled={
+                  !isGameStarted || 
+                  selectedButton === null || 
+                  checkSubmitLimit(selectedButton) ||
+                  !checkAnswerLength() // Thêm điều kiện kiểm tra độ dài
+                }
               >
                 Xác nhận
               </SubmitButton>
@@ -384,9 +475,11 @@ const PlayPage = () => {
                   ? "Vui lòng bắt đầu chơi..." 
                   : selectedButton === null 
                     ? "Vui lòng chọn câu hỏi..." 
-                    : `Nhập đáp án cho câu ${selectedButton + 1}...`
+                    : checkSubmitLimit(selectedButton)
+                      ? "Bạn đã hết lượt trả lời"
+                      : `Nhập đáp án ${answer.length}/${questions[selectedButton]?.numberOfCharacters || 0} ký tự...`
               }
-              disabled={!isGameStarted || selectedButton === null}
+              disabled={!isGameStarted || selectedButton === null || checkSubmitLimit(selectedButton)}
               $showRedBorder={showRedBorder}
             />
           </AnswerForm>
@@ -395,18 +488,23 @@ const PlayPage = () => {
             <FormHeader>
               <FormTitle>Từ khóa</FormTitle>
               <SubmitButton 
-                onClick={() => console.log('Xác nhận từ khóa')}
-                disabled={!isGameStarted}
+                onClick={handleKeywordSubmit}
+                disabled={!isGameStarted || !checkKeywordLength()}
               >
                 Xác nhận
               </SubmitButton>
             </FormHeader>
             <InputBox 
               type="text" 
-              placeholder="Nhập từ khóa của ô chữ..."
+              placeholder={
+                !isGameStarted 
+                  ? "Vui lòng bắt đầu chơi..."
+                  : `Nhập từ khóa ${keyword.length}/${numberOfQuestions} ký tự...`
+              }
               value={keyword}
               onChange={handleKeywordChange}
               disabled={!isGameStarted}
+              $showRedBorder={showRedBorder}
             />
           </KeywordForm>
         </RightPanel>
