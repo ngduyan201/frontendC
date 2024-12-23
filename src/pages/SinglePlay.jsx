@@ -6,6 +6,7 @@ import { crosswordService } from '../services/crosswordService';
 import CryptoJS from 'crypto-js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import useSound from 'use-sound';
 
 // Thêm GlobalStyle để tùy chỉnh toast
 const ToastStyle = createGlobalStyle`
@@ -222,7 +223,11 @@ const PlayPage = () => {
       const newLetters = [...prevLetters];
       [...keyword].forEach((char, index) => {
         if (newLetters[index]) {
-          newLetters[index][8] = char; // Cột 8 là cột giữa (màu vàng)
+          newLetters[index][8] = {
+            value: char,
+            index: index,
+            isKeyword: true // Đánh dấu là ký tự của từ khóa
+          };
         }
       });
       return newLetters;
@@ -231,6 +236,15 @@ const PlayPage = () => {
 
   // Thêm state mới
   const [isKeywordInputDisabled, setIsKeywordInputDisabled] = useState(false);
+
+  // Thêm state mới
+  const [isKeywordCorrect, setIsKeywordCorrect] = useState(false);
+
+  // Khởi tạo các âm thanh
+  const [playCorrect] = useSound('/sounds/crowd-cheer.mp3');
+  const [playWrong] = useSound('/sounds/fail-jingle.mp3');
+  const [playKeywordCorrect] = useSound('/sounds/goodresult.mp3');
+  const [playKeywordWrong] = useSound('/sounds/buzzer2.mp3');
 
   // Hàm xử lý submit từ khóa
   const handleKeywordSubmit = async () => {
@@ -252,7 +266,8 @@ const PlayPage = () => {
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
 
         if (userKeyword === correctKeyword) {
-          toast.success('Từ khóa chính xác!', {
+          playKeywordCorrect(); // Tiếng goodresult khi từ khóa đúng
+          toast.success(' Từ khóa chính xác!', {
             position: "top-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -261,9 +276,16 @@ const PlayPage = () => {
             draggable: false,
             progress: undefined,
           });
-          displayKeywordOnGrid(userKeyword);
+
+          // Set state khi từ khóa đúng
+          setIsKeywordCorrect(true);
+
+          setTimeout(() => {
+            displayKeywordOnGrid(userKeyword);
+          }, 1000);
         } else {
-          toast.error('Từ khóa không chính xác!', {
+          playKeywordWrong();
+          toast.error(' Từ khóa không chính xác!', {
             position: "top-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -321,10 +343,12 @@ const PlayPage = () => {
   const displayAnswerOnGrid = (rowIndex, answer, startColumn) => {
     setLetters(prevLetters => {
       const newLetters = [...prevLetters];
-      // Đặt từng ký tự vào đúng vị trí trên grid
       [...answer].forEach((char, index) => {
         if (newLetters[rowIndex]) {
-          newLetters[rowIndex][startColumn + index] = char;
+          newLetters[rowIndex][startColumn + index] = {
+            value: char,
+            index: index // Thêm index để tạo delay
+          };
         }
       });
       return newLetters;
@@ -351,8 +375,6 @@ const PlayPage = () => {
 
     try {
       const key = secretKeyManager.getKey();
-      console.log('Submit - Key exists:', !!key);
-      
       if (!key) {
         console.error('Secret key not found');
         return;
@@ -367,7 +389,8 @@ const PlayPage = () => {
       const isCorrect = currentAnswer === correctAnswer;
 
       if (isCorrect) {
-        toast.success('Chính xác!', {
+        playCorrect(); // Tiếng hò hét + vỗ tay khi trả lời đúng
+        toast.success(' Chính xác!', {
           position: "top-center",
           autoClose: 2000,
           hideProgressBar: false,
@@ -376,17 +399,23 @@ const PlayPage = () => {
           draggable: false,
           progress: undefined,
         });
-        setAnswers(prev => ({
-          ...prev,
-          [selectedButton]: currentAnswer
-        }));
-        
-        const startColumn = questions[selectedButton].columnPosition;
-        displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
-        
-        setIsAnswering(false);
+
+        // Thêm độ trễ trước khi hiển thị đáp án trên grid
+        setTimeout(() => {
+          setAnswers(prev => ({
+            ...prev,
+            [selectedButton]: currentAnswer
+          }));
+          
+          const startColumn = questions[selectedButton].columnPosition;
+          displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
+          
+          setIsAnswering(false);
+        }, 1000); // Đợi 1 giây sau khi toast hiện lên
+
       } else {
-        toast.error(`Sai rồi! Bạn còn ${1 - (submitCounts[selectedButton] || 0)} lần thử còn lại`, {
+        playWrong(); // Tiếng fail jingle khi trả lời sai
+        toast.error(` Sai rồi! Bạn còn ${1 - (submitCounts[selectedButton] || 0)} lần thử`, {
           position: "top-center",
           autoClose: 2000,
           hideProgressBar: false,
@@ -525,8 +554,20 @@ const PlayPage = () => {
                     $isHighlighted={shouldHighlight(rowIndex, colIndex)}
                     $isGameStarted={isGameStarted}
                     $isSelected={rowIndex === selectedButton}
+                    $index={rowIndex}
                   >
-                    {letter && <Letter>{letter}</Letter>}
+                    {letter && typeof letter === 'object' ? (
+                      <Letter 
+                        $index={letter.index}
+                        $isKeyword={letter.isKeyword}
+                      >
+                        {letter.value}
+                      </Letter>
+                    ) : letter ? (
+                      <Letter $index={0}>
+                        {letter}
+                      </Letter>
+                    ) : null}
                   </GridCell>
                 ))}
               </GridRow>
@@ -587,7 +628,12 @@ const PlayPage = () => {
               <FormTitle>Từ khóa</FormTitle>
               <SubmitButton 
                 onClick={handleKeywordSubmit}
-                disabled={!isGameStarted || !checkKeywordLength() || isKeywordInputDisabled}
+                disabled={
+                  !isGameStarted || 
+                  !checkKeywordLength() || 
+                  isKeywordInputDisabled || 
+                  isKeywordCorrect  // Thêm điều kiện disable khi đã trả lời đúng
+                }
               >
                 Xác nhận
               </SubmitButton>
@@ -597,13 +643,15 @@ const PlayPage = () => {
               placeholder={
                 !isGameStarted 
                   ? "Vui lòng bắt đầu chơi..."
-                  : isKeywordInputDisabled
-                    ? "Vui lòng đợi..."
-                    : `Nhập từ khóa ${keyword.length}/${numberOfQuestions} ký tự...`
+                  : isKeywordCorrect
+                    ? "Từ khóa đã được trả lời đúng!"  // Thêm placeholder mới
+                    : isKeywordInputDisabled
+                      ? "Vui lòng đợi..."
+                      : `Nhập từ khóa ${keyword.length}/${numberOfQuestions} ký tự...`
               }
               value={keyword}
               onChange={handleKeywordChange}
-              disabled={!isGameStarted || isKeywordInputDisabled}
+              disabled={!isGameStarted || isKeywordInputDisabled || isKeywordCorrect}  // Thêm điều kiện disable
               $showRedBorder={showRedBorder}
             />
           </KeywordForm>
@@ -804,12 +852,56 @@ const GridCell = styled.div`
     if (props.$hasLetter) return '#fff';
     return 'white';
   }};
+
+  // Thêm hiệu ứng nhấp nháy cho cột từ khóa khi hoàn thành
+  ${props => props.$isKeywordColumn && props.$hasLetter && `
+    animation: emphasis 2s ease-in-out;
+    animation-delay: ${props => props.$index * 0.1 + 0.5}s;
+    animation-fill-mode: forwards;
+  `}
+
+  @keyframes emphasis {
+    0%, 100% {
+      background-color: #FFF3E0;
+    }
+    50% {
+      background-color: #FFD700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+  }
 `;
 
 const Letter = styled.span`
   font-size: 1.7rem;
   color: #222;
   font-weight: bold;
+  position: relative;
+  opacity: 0;
+  animation: ${props => props.$isKeyword ? 'wipeDown' : 'wipeIn'} 0.5s ease-out;
+  animation-delay: ${props => props.$index * 0.1}s;
+  animation-fill-mode: forwards;
+
+  @keyframes wipeIn {
+    0% {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    100% {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes wipeDown {
+    0% {
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+    }
+    100% {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
 `;
 
 const RightPanel = styled.div`
