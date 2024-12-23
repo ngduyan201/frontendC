@@ -272,6 +272,19 @@ export const crosswordService = {
       console.error('Clear play session error:', error);
       throw error;
     }
-  }
+  },
+
+  getSecretKey: async () => {
+    try {
+      const response = await api.get(API_URLS.CROSSWORDS.GET_SECRET_KEY);
+      if (!response.success) {
+        throw new Error('Không thể lấy secret key');
+      }
+      return response.data.secretKey;
+    } catch (error) {
+      console.error('Get secret key error:', error);
+      throw error;
+    }
+  },
 };
 

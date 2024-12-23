@@ -3,12 +3,15 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ResetModal, HomeModal } from '../components/modals/PlayModal';
 import { crosswordService } from '../services/crosswordService';
+import CryptoJS from 'crypto-js';
 
 const PlayPage = () => {
   const navigate = useNavigate();
   const [puzzleData, setPuzzleData] = useState(null);
   const [questionData, setQuestionData] = useState(''); // Dữ liệu câu hỏi
   const [answer, setAnswer] = useState(''); // Đáp án nhập vào
+  const [selectedButton, setSelectedButton] = useState(null); // Button được chọn
+  const [answers, setAnswers] = useState({}); // Object lưu đáp án theo số câu hỏi
 
   // Thêm state cho letters
   const [letters, setLetters] = useState([]);
@@ -22,9 +25,6 @@ const PlayPage = () => {
   // Thêm state quản lý modal cho nút quay lại trang chủ
   const [showHomeModal, setShowHomeModal] = useState(false);
 
-  // Thêm state để theo dõi button được chọn
-  const [selectedButton, setSelectedButton] = useState(null);
-
   // Thêm states mới
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isAnswering, setIsAnswering] = useState(false);
@@ -36,6 +36,34 @@ const PlayPage = () => {
   const [numberOfQuestions, setNumberOfQuestions] = useState(0);
 
   const [questions, setQuestions] = useState([]);
+
+  // Tạo closure để lưu và truy xuất secretKey
+  const secretKeyManager = (() => {
+    let key = null;
+    
+    return {
+      setKey: (newKey) => {
+        key = newKey;
+      },
+      getKey: () => key
+    };
+  })();
+
+  // Thêm useEffect để lấy secretKey khi component mount
+  useEffect(() => {
+    const fetchSecretKey = async () => {
+      try {
+        const key = await crosswordService.getSecretKey();
+        secretKeyManager.setKey(key);
+        console.log('Secret key loaded successfully');
+      } catch (error) {
+        console.error('Error fetching secret key:', error);
+        navigate('/library');
+      }
+    };
+
+    fetchSecretKey();
+  }, [navigate]);
 
   useEffect(() => {
     const loadPuzzleData = async () => {
@@ -123,8 +151,17 @@ const PlayPage = () => {
   };
 
   const handleAnswerChange = (e) => {
-    setAnswer(e.target.value);
-    setIsAnswering(true); // Đánh dấu đang trong quá trình trả lời
+    const value = e.target.value.toUpperCase();
+    setAnswer(value);
+    setIsAnswering(true);
+
+    // Lưu đáp án vào object answers với key là số câu hỏi
+    if (selectedButton !== null) {
+      setAnswers(prev => ({
+        ...prev,
+        [selectedButton]: value
+      }));
+    }
   };
 
   // Thay đổi tên hàm và chức năng
@@ -170,12 +207,67 @@ const PlayPage = () => {
       return;
     }
     setSelectedButton(index);
+    // Set nội dung câu hỏi tương ứng
+    setQuestionData(questions[index]?.questionContent || '');
   };
 
-  // Thêm hàm xử lý khi submit câu trả lời
+  // Hàm hiển thị đáp án lên grid
+  const displayAnswerOnGrid = (rowIndex, answer, startColumn) => {
+    setLetters(prevLetters => {
+      const newLetters = [...prevLetters];
+      // Đặt từng ký tự vào đúng vị trí trên grid
+      [...answer].forEach((char, index) => {
+        if (newLetters[rowIndex]) {
+          newLetters[rowIndex][startColumn + index] = char;
+        }
+      });
+      return newLetters;
+    });
+  };
+
+  // Xử lý khi submit câu trả lời
   const handleAnswerSubmit = () => {
-    setAnswer('');
-    setIsAnswering(false);
+    if (selectedButton === null) return;
+
+    try {
+      const key = secretKeyManager.getKey();
+      if (!key) {
+        console.error('Secret key not found');
+        return;
+      }
+
+      const currentAnswer = answer.toUpperCase();
+      const encryptedUserAnswer = CryptoJS.AES.encrypt(currentAnswer, key).toString();
+      const correctAnswer = questions[selectedButton]?.answer;
+
+      const isCorrect = encryptedUserAnswer === correctAnswer;
+
+      if (isCorrect) {
+        console.log('Câu trả lời đúng!');
+        // Lưu đáp án
+        setAnswers(prev => ({
+          ...prev,
+          [selectedButton]: currentAnswer
+        }));
+        
+        // Hiển thị đáp án lên grid
+        const startColumn = questions[selectedButton].columnPosition;
+        displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
+        
+      } else {
+        console.log('Câu trả lời sai!');
+        setShowRedBorder(true);
+        setTimeout(() => {
+          setShowRedBorder(false);
+        }, 3000);
+      }
+
+      setAnswer('');
+      setIsAnswering(false);
+
+    } catch (error) {
+      console.error('Error processing answer:', error);
+    }
   };
 
   // Hàm kiểm tra ô có được tô màu không
@@ -274,7 +366,13 @@ const PlayPage = () => {
               type="text" 
               value={answer} 
               onChange={handleAnswerChange} 
-              placeholder="Nhập câu trả lời ở đây..."
+              placeholder={
+                !isGameStarted 
+                  ? "Vui lòng bắt đầu chơi..." 
+                  : selectedButton === null 
+                    ? "Vui lòng chọn câu hỏi..." 
+                    : `Nhập đáp án cho câu ${selectedButton + 1}...`
+              }
               disabled={!isGameStarted || selectedButton === null}
               $showRedBorder={showRedBorder}
             />
