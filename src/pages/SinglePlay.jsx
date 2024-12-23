@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ResetModal, HomeModal } from '../components/modals/PlayModal';
@@ -38,16 +38,20 @@ const PlayPage = () => {
   const [questions, setQuestions] = useState([]);
 
   // Tạo closure để lưu và truy xuất secretKey
-  const secretKeyManager = (() => {
+  const secretKeyManager = useMemo(() => {
     let key = null;
     
     return {
       setKey: (newKey) => {
         key = newKey;
+        console.log('Key set:', !!key); // Log khi set key
       },
-      getKey: () => key
+      getKey: () => {
+        console.log('Key get:', !!key); // Log khi get key
+        return key;
+      }
     };
-  })();
+  }, []); // Đảm bảo closure chỉ được tạo một lần
 
   // Thêm useEffect để lấy secretKey khi component mount
   useEffect(() => {
@@ -63,7 +67,7 @@ const PlayPage = () => {
     };
 
     fetchSecretKey();
-  }, [navigate]);
+  }, [navigate, secretKeyManager]); // Thêm secretKeyManager vào dependencies
 
   useEffect(() => {
     const loadPuzzleData = async () => {
@@ -231,16 +235,25 @@ const PlayPage = () => {
 
     try {
       const key = secretKeyManager.getKey();
+      console.log('Submit - Key exists:', !!key);
+      
       if (!key) {
         console.error('Secret key not found');
         return;
       }
 
       const currentAnswer = answer.toUpperCase();
-      const encryptedUserAnswer = CryptoJS.AES.encrypt(currentAnswer, key).toString();
-      const correctAnswer = questions[selectedButton]?.answer;
+      const correctEncrypted = questions[selectedButton]?.answer;
 
-      const isCorrect = encryptedUserAnswer === correctAnswer;
+      // Giải mã đáp án từ database
+      const bytes = CryptoJS.AES.decrypt(correctEncrypted, key);
+      const correctAnswer = bytes.toString(CryptoJS.enc.Utf8);
+
+      console.log('User answer:', currentAnswer);
+      console.log('Correct answer:', correctAnswer);
+
+      // So sánh trực tiếp sau khi giải mã
+      const isCorrect = currentAnswer === correctAnswer;
 
       if (isCorrect) {
         console.log('Câu trả lời đúng!');
