@@ -129,12 +129,6 @@ const PlayPage = () => {
     }
   };
 
-  // Hàm điều hướng đến phần trả lời từ khoá
-  const handleAnswerKeyword = () => {
-    console.log('Đi đến phần tr lời từ khoá');
-    // Điều hướng đến phần trả lời từ khoá (Bạn có thể làm thêm sau)
-  };
-
   const handleAnswerChange = (e) => {
     const value = e.target.value.toUpperCase();
     const expectedLength = questions[selectedButton]?.numberOfCharacters;
@@ -579,12 +573,13 @@ const MainContent = styled.div`
   display: flex;
   gap: 30px;
   padding: 20px 40px 20px 20px;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
   box-sizing: border-box;
   justify-content: center;
   max-width: 1600px;
   margin: 0 auto;
+  min-height: calc(100vh - 80px);
 `;
 
 const GridWrapper = styled.div`
@@ -594,6 +589,7 @@ const GridWrapper = styled.div`
   align-items: center;
   flex: 3;
   max-width: 900px;
+  margin: auto 0;
 `;
 
 const ButtonColumn = styled.div`
@@ -678,6 +674,7 @@ const RightPanel = styled.div`
   gap: 20px;
   height: 100%;
   max-width: 500px;
+  margin: auto 0;
 `;
 
 const QuestionForm = styled.div`
