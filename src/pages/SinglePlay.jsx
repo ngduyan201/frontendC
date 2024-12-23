@@ -118,12 +118,18 @@ const PlayPage = () => {
 
   const handleConfirmGoHome = async () => {
     try {
+      // Xóa secretKey trước khi rời trang
+      secretKeyManager.setKey(null);
+      console.log('Secret key cleared');
+
       // Gọi API để xóa session
       await crosswordService.clearPlaySession();
       setShowHomeModal(false);
       navigate('/library');
     } catch (error) {
       console.error('Error clearing session:', error);
+      // Vẫn xóa key và chuyển trang ngay cả khi có lỗi
+      secretKeyManager.setKey(null);
       setShowHomeModal(false);
       navigate('/library');
     }
@@ -161,9 +167,12 @@ const PlayPage = () => {
     setAnswer('');
     setIsAnswering(false);
     setKeyword('');
-    setIsGameStarted(false); // Quay về trạng thái ban đầu
-    // Reset các state khác về giá trị ban đầu
+    setIsGameStarted(false);
     setLetters(Array(numberOfQuestions).fill(null).map(() => Array(17).fill('')));
+    setQuestionData('');
+    setSubmitCounts({}); // Reset số lần submit
+    setAnswers({}); // Reset các đáp án đã nhập
+    setShowRedBorder(false); // Tắt hiệu ứng border đỏ nếu đang hiển thị
   };
 
   // Thêm handler cho từ khóa
@@ -238,18 +247,32 @@ const PlayPage = () => {
 
   // Thêm hàm xử lý khi click button
   const handleButtonClick = (index) => {
-    if (!isGameStarted) return; // Không cho phép click nếu chưa bắt đầu
+    if (!isGameStarted) return;
+    
+    // Kiểm tra nếu câu hỏi đã được trả lời đúng
+    if (answers[index]) {
+      console.log('Câu hỏi này đã được trả lời đúng!');
+      return;
+    }
+    
+    // Kiểm tra nếu đã trả lời sai 2 lần
+    if (hasReachedMaxAttempts(index)) {
+      console.log('Câu hỏi này đã hết lượt trả lời!');
+      return;
+    }
+    
     if (isAnswering) {
       // Nếu đang trả lời, hiện khung đỏ
       setShowRedBorder(true);
       setTimeout(() => {
         setShowRedBorder(false);
-      }, 3000); // Tắt khung đỏ sau 3 giây
+      }, 3000);
       return;
     }
+    
     setSelectedButton(index);
-    // Set nội dung câu hỏi tương ứng
     setQuestionData(questions[index]?.questionContent || '');
+    setIsAnswering(true);
   };
 
   // Hàm hiển thị đáp án lên grid
@@ -311,13 +334,20 @@ const PlayPage = () => {
         const startColumn = questions[selectedButton].columnPosition;
         displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
         
+        setIsAnswering(false);
       } else {
         console.log('Câu trả lời sai!');
-        // Tăng số lần submit cho câu hỏi hiện tại
-        setSubmitCounts(prev => ({
-          ...prev,
-          [selectedButton]: (prev[selectedButton] || 0) + 1
-        }));
+        // Tăng số lần submit và kiểm tra giới hạn
+        setSubmitCounts(prev => {
+          const newCount = (prev[selectedButton] || 0) + 1;
+          if (newCount >= 2) {
+            setIsAnswering(false);
+          }
+          return {
+            ...prev,
+            [selectedButton]: newCount
+          };
+        });
         
         setShowRedBorder(true);
         setTimeout(() => {
@@ -326,7 +356,6 @@ const PlayPage = () => {
       }
 
       setAnswer('');
-      setIsAnswering(false);
 
     } catch (error) {
       console.error('Error processing answer:', error);
@@ -352,6 +381,27 @@ const PlayPage = () => {
     const expectedLength = questions[selectedButton]?.numberOfCharacters;
     return answer.length === expectedLength;
   };
+
+  // Thêm hàm kiểm tra số lần trả lời sai
+  const hasReachedMaxAttempts = (index) => {
+    return (submitCounts[index] || 0) >= 2;
+  };
+
+  // Thêm hàm kiểm tra tất cả câu hỏi đã được trả lời
+  const isAllQuestionsAnswered = () => {
+    return questions.every((_, index) => {
+      const isAnsweredCorrectly = !!answers[index];  // Đã trả lời đúng
+      const isMaxAttempts = hasReachedMaxAttempts(index);  // Đã trả lời sai 2 lần
+      return isAnsweredCorrectly || isMaxAttempts;
+    });
+  };
+
+  // Thêm useEffect để xử lý reset selectedButton
+  useEffect(() => {
+    if (isAllQuestionsAnswered()) {
+      setSelectedButton(null);
+    }
+  }, [answers, submitCounts]); // Chạy khi answers hoặc submitCounts thay đổi
 
   return (
     <PlayPageContainer>
@@ -382,8 +432,10 @@ const PlayPage = () => {
               <RoundButton 
                 key={index} 
                 $isSelected={selectedButton === index}
+                $isAnswered={!!answers[index]}
+                $maxAttempts={hasReachedMaxAttempts(index)}
                 onClick={() => handleButtonClick(index)}
-                disabled={!isGameStarted}
+                disabled={!isGameStarted || (isAnswering && index !== selectedButton)}
               >
                 {index + 1}
               </RoundButton>
@@ -400,6 +452,7 @@ const PlayPage = () => {
                     $hasLetter={letter !== ''}
                     $isHighlighted={shouldHighlight(rowIndex, colIndex)}
                     $isGameStarted={isGameStarted}
+                    $isSelected={rowIndex === selectedButton}
                   >
                     {letter && <Letter>{letter}</Letter>}
                   </GridCell>
@@ -415,9 +468,11 @@ const PlayPage = () => {
             <QuestionBox>
               {!isGameStarted 
                 ? 'Vui lòng bấm "Bắt đầu chơi" để bắt đầu trò chơi'
-                : selectedButton === null 
-                  ? 'Vui lòng chọn một câu hỏi'
-                  : questionData
+                : isAllQuestionsAnswered()
+                  ? 'Hãy trả lời từ khóa chính để hoàn thành trò chơi'
+                  : selectedButton === null 
+                    ? 'Vui lòng chọn một câu hỏi'
+                    : questionData
               }
             </QuestionBox>
           </QuestionForm>
@@ -437,7 +492,7 @@ const PlayPage = () => {
                 Xác nhận
               </SubmitButton>
             </FormHeader>
-            <InputBox 
+            <AnswerInputBox 
               type="text" 
               value={answer} 
               onChange={handleAnswerChange} 
@@ -539,20 +594,21 @@ const Banner = styled.div`
 `;
 
 const BackButton = styled.button`
-  background-color: #333;
-  color: white;
-  border: none;
+  background-color: white;
+  color: black;
+  border: 2px solid black;
   padding: 12px 24px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   min-width: 120px;
   font-size: 1.1rem;
   font-weight: 500;
   letter-spacing: 0.5px;
 
   &:hover {
-    background-color: #444;
+    background-color: black;
+    color: white;
   }
 `;
 
@@ -606,7 +662,9 @@ const RoundButton = styled.button`
   border-radius: 50%;
   background-color: ${props => 
     props.disabled ? '#ccc' : 
-    props.$isSelected ? '#FFD700' : '#008080'
+    props.$isAnswered ? '#4CAF50' :  // Màu xanh lá cho câu đã trả lời đúng
+    props.$maxAttempts ? '#ff4d4d' :  // Màu đỏ cho câu đã hết lượt
+    props.$isSelected ? '#FFD700' : '#87CEEB'  // Thay đổi màu cơ bản thành xanh da trời nhạt
   };
   color: ${props => props.$isSelected ? '#000' : '#fff'};
   border: none;
@@ -614,14 +672,18 @@ const RoundButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  cursor: ${props => 
+    props.disabled || props.$isAnswered || props.$maxAttempts ? 'not-allowed' : 'pointer'
+  };
   margin: 1px 0;
   transition: all 0.3s ease;
 
   &:hover {
     background-color: ${props => 
       props.disabled ? '#ccc' : 
-      props.$isSelected ? '#FFD700' : '#006666'
+      props.$isAnswered ? '#4CAF50' :
+      props.$maxAttempts ? '#ff4d4d' :
+      props.$isSelected ? '#FFD700' : '#7CB9E8'  // Màu hover cũng đổi sang xanh da trời đậm hơn một chút
     };
     opacity: ${props => props.$isSelected ? 1 : 0.9};
   }
@@ -644,10 +706,19 @@ const GridRow = styled.div`
 const GridCell = styled.div`
   width: 48px;
   height: 48px;
-  border: 1px solid ${props => {
-    if ((props.$isHighlighted || props.$isKeywordColumn) && props.$isGameStarted) return '#000';
-    if (props.$hasLetter) return '#ccc';
-    return '#fff';
+  border: ${props => {
+    if (props.$isGameStarted) {
+      if (props.$isSelected) {
+        // Viền đậm cho cả ô thường và ô vàng trong hàng được chọn
+        return props.$isHighlighted || props.$isKeywordColumn 
+          ? '2px solid #000' 
+          : '1px solid #fff';
+      }
+      // Viền bình thường cho các ô khác
+      if (props.$isKeywordColumn || props.$isHighlighted) return '1px solid #000';
+    }
+    if (props.$hasLetter) return '1px solid #ccc';
+    return '1px solid #fff';
   }};
   display: flex;
   justify-content: center;
@@ -721,7 +792,7 @@ const InputBox = styled.input`
   padding: 15px;
   font-size: 1.6rem;
   border-radius: 8px;
-  border: 1px solid ${props => props.$showRedBorder ? '#ff4d4d' : '#ccc'};
+  border: 1px solid #ccc;
   box-sizing: border-box;
   outline: none;
   margin-top: 10px;
@@ -732,12 +803,20 @@ const InputBox = styled.input`
   cursor: ${props => props.disabled ? 'not-allowed' : 'text'};
 
   &:focus {
-    border-color: ${props => props.$showRedBorder ? '#ff4d4d' : '#333'};
+    border-color: #333;
   }
 
   &::placeholder {
     font-size: 1.2rem;
     font-weight: normal;
     color: #999;
+  }
+`;
+
+const AnswerInputBox = styled(InputBox)`
+  border: ${props => props.$showRedBorder ? '3px solid #ff4d4d' : '1px solid #ccc'};
+
+  &:focus {
+    border-color: ${props => props.$showRedBorder ? '#ff4d4d' : '#333'};
   }
 `;
