@@ -7,7 +7,6 @@ import CryptoJS from 'crypto-js';
 
 const PlayPage = () => {
   const navigate = useNavigate();
-  const [puzzleData, setPuzzleData] = useState(null);
   const [questionData, setQuestionData] = useState(''); // Dữ liệu câu hỏi
   const [answer, setAnswer] = useState(''); // Đáp án nhập vào
   const [selectedButton, setSelectedButton] = useState(null); // Button được chọn
@@ -70,49 +69,30 @@ const PlayPage = () => {
   }, [navigate, secretKeyManager]); // Thêm secretKeyManager vào dependencies
 
   useEffect(() => {
-    const loadPuzzleData = async () => {
-      try {
-        const currentSession = crosswordService.getCurrentPlaySession();
-        console.log('Session hiện tại:', currentSession);
-
-        if (currentSession.success) {
-          console.log('Dữ liệu từ session:', currentSession.data);
-          setPuzzleData(currentSession.data);
-          initializeLettersFromKeyword(currentSession.data.mainKeyword[0]);
-        }
-      } catch (error) {
-        console.error('Lỗi khi tải dữ liệu:', error);
-      }
-    };
-
-    loadPuzzleData();
-  }, []);
-
-  useEffect(() => {
     const loadPuzzleData = () => {
       try {
         const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
         if (playData?.success && playData?.data) {
-          // Lấy title từ data
           const title = playData.data.title || 'Ô chữ không có tên';
           setPuzzleTitle(title.toUpperCase());
           
-          // Set số câu hỏi
-          setNumberOfQuestions(playData.data.numberOfQuestions);
+          // Lấy số câu hỏi từ độ dài từ khóa được mã hóa
+          const numberOfQuestions = playData.data.numberOfQuestions;
+          setNumberOfQuestions(numberOfQuestions);
           
-          // Khởi tạo lại letters array với số hàng bằng numberOfQuestions
+          // Khởi tạo letters array
           setLetters(
-            Array(playData.data.numberOfQuestions)
+            Array(numberOfQuestions)
               .fill(null)
               .map(() => Array(17).fill(''))
           );
           
-          // Lưu thông tin câu hỏi từ đúng vị trí trong data
+          // Lưu thông tin câu hỏi
           setQuestions(playData.data.mainKeyword[0].associatedHorizontalKeywords || []);
           
           console.log('Loaded puzzle data:', {
             title,
-            numberOfQuestions: playData.data.numberOfQuestions,
+            numberOfQuestions,
             questions: playData.data.mainKeyword[0].associatedHorizontalKeywords
           });
         }
@@ -234,13 +214,14 @@ const PlayPage = () => {
       }
 
       const userKeyword = keyword.toUpperCase();
-      // Lấy keyword từ đúng vị trí trong cấu trúc dữ liệu
-      const correctEncrypted = puzzleData.mainKeyword[0].associatedHorizontalKeywords[0].keyword;
+      // Lấy keyword được mã hóa từ đúng vị trí trong mainKeyword array
+      const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
+      const encryptedKeyword = playData.data.mainKeyword[0].keyword;
       
-      console.log('Encrypted keyword:', correctEncrypted);
+      console.log('Encrypted keyword:', encryptedKeyword);
 
       try {
-        const bytes = CryptoJS.AES.decrypt(correctEncrypted, key);
+        const bytes = CryptoJS.AES.decrypt(encryptedKeyword, key);
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
         
         console.log('Decrypted keyword:', correctKeyword);
@@ -249,6 +230,7 @@ const PlayPage = () => {
         if (userKeyword === correctKeyword) {
           console.log('Từ khóa đúng!');
           displayKeywordOnGrid(userKeyword);
+          // Có thể thêm thông báo thành công ở đây
         } else {
           console.log('Từ khóa sai!');
           setShowRedBorder(true);
