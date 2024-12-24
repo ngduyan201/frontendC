@@ -30,6 +30,7 @@ export const API_URLS = {
     GET_LIBRARY: '/crosswords/library',
     START_PLAY: (id) => `/crosswords/play/${id}`,
     GET_SECRET_KEY: '/crosswords/get-secret-key',
+    SEARCH: '/crosswords/search',
   }
 }; 
 

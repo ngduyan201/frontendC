@@ -728,7 +728,7 @@ const TeamPlay = () => {
                   value={team.name}
                   onChange={(e) => handleTeamNameChange(index, e.target.value)}
                   onBlur={() => handleTeamNameBlur(index)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleTeamNameBlur(index);
                     }

@@ -267,9 +267,11 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
                 <EditInfoButton onClick={handleEditInfoClick}>
                   {isEditing ? 'Lưu lại' : 'Chỉnh sửa thông tin'}
                 </EditInfoButton>
-                <DeleteButton onClick={() => setShowDeleteConfirm(true)}>
-                  Xóa ô chữ
-                </DeleteButton>
+                {!isEditing && (
+                  <DeleteButton onClick={() => setShowDeleteConfirm(true)}>
+                    Xóa ô chữ
+                  </DeleteButton>
+                )}
               </ButtonGroup>
               <ButtonGroup>
                 <EditContentButton onClick={handleEditContentClick}>

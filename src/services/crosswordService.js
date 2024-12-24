@@ -288,5 +288,44 @@ export const crosswordService = {
       throw error;
     }
   },
+
+  searchCrosswords: async (params) => {
+    try {
+      const queryString = new URLSearchParams({
+        page: params.page || 1,
+        limit: params.limit || 9,
+        query: params.query || '',
+        subject: params.subject || '',
+        grade: params.grade || ''
+      }).toString();
+
+      const response = await api.get(`${API_URLS.CROSSWORDS.SEARCH}?${queryString}`);
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Có lỗi xảy ra khi tìm kiếm');
+      }
+
+      return {
+        success: true,
+        data: {
+          crosswords: response.data.crosswords,
+          totalPages: response.data.totalPages,
+          totalResults: response.data.totalResults
+        }
+      };
+
+    } catch (error) {
+      console.error('Search crosswords error:', error);
+      return {
+        success: false,
+        message: error.message || 'Có lỗi xảy ra khi tìm kiếm',
+        data: {
+          crosswords: [],
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+  }
 };
 
