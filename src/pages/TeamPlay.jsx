@@ -36,7 +36,7 @@ const ToastStyle = createGlobalStyle`
 const TEAM_COLORS = {
   0: {
     background: '#f08080', // lightcoral
-    border: '#b01030',
+    border: '#ff6347',
     text: 'white',
     hoverBg: '#c51236'
   },
@@ -241,6 +241,9 @@ const TeamPlay = () => {
     setSubmitCounts({}); // Reset số lần submit
     setAnswers({}); // Reset các đáp án đã nhập
     setShowRedBorder(false); // Tắt hiệu ứng border đỏ nếu đang hiển thị
+    setDisabledTeams(new Set()); // Reset danh sách đội bị cấm
+    setKeywordAttempts(new Set()); // Reset danh sách đội đã thử trả lời từ khóa
+    setIsKeywordCorrect(false); // Reset trạng thái từ khóa đúng
   };
 
   // Thêm handler cho từ khóa
@@ -286,9 +289,24 @@ const TeamPlay = () => {
   const [playKeywordCorrect] = useSound('/sounds/goodresult.mp3');
   const [playKeywordWrong] = useSound('/sounds/buzzer2.mp3');
 
+  // Thêm state để theo dõi các đội đã trả lời sai từ khóa
+  const [disabledTeams, setDisabledTeams] = useState(new Set());
+
+  // Thêm state để theo dõi các đội đã thử trả lời từ khóa
+  const [keywordAttempts, setKeywordAttempts] = useState(new Set());
+
   // Hàm xử lý submit từ khóa
   const handleKeywordSubmit = async () => {
     try {
+      // Kiểm tra xem đội này đã thử chưa
+      if (keywordAttempts.has(activeTeam)) {
+        toast.error('Đội này đã sử dụng lượt trả lời từ khóa!', {
+          position: "top-center",
+          autoClose: 2000,
+        });
+        return;
+      }
+
       setIsKeywordInputDisabled(true);
 
       const key = secretKeyManager.getKey();
@@ -305,9 +323,23 @@ const TeamPlay = () => {
         const bytes = CryptoJS.AES.decrypt(encryptedKeyword, key);
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
 
+        // Đánh dấu đội này đã thử trả lời
+        setKeywordAttempts(prev => new Set(prev).add(activeTeam));
+
         if (userKeyword === correctKeyword) {
-          playSound(playKeywordCorrect); // Tiếng goodresult khi từ khóa đúng
-          toast.success(' Từ khóa chính xác!', {
+          playSound(playKeywordCorrect);
+          
+          // Tính số ký tự đã hiển thị ở cột giữa
+          const revealedLetters = letters.reduce((count, row) => {
+            if (row[8] && row[8].value) count++;
+            return count;
+          }, 0);
+
+          // Tính điểm: 5 điểm mỗi ký tự còn lại
+          const totalPoints = (correctKeyword.length * 5) - (revealedLetters * 5);
+          handleTeamScoreChange(activeTeam, totalPoints);
+
+          toast.success(` Từ khóa chính xác! +${totalPoints} điểm`, {
             position: "top-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -325,7 +357,11 @@ const TeamPlay = () => {
           }, 1000);
         } else {
           playSound(playKeywordWrong);
-          toast.error(' Từ khóa không chính xác!', {
+          
+          // Thêm team vào danh sách disabled
+          setDisabledTeams(prev => new Set(prev).add(activeTeam));
+          
+          toast.error(' Từ khóa không chính xác! Đội này không thể chọn câu hỏi nữa!', {
             position: "top-center",
             autoClose: 2000,
             hideProgressBar: false,
@@ -334,6 +370,9 @@ const TeamPlay = () => {
             draggable: false,
             progress: undefined,
           });
+
+          // Reset keyword input
+          setKeyword('');
         }
       } catch (decryptError) {
         console.error('Error decrypting keyword:', decryptError);
@@ -346,6 +385,7 @@ const TeamPlay = () => {
     } catch (error) {
       console.error('Error processing keyword:', error);
       setIsKeywordInputDisabled(false);
+      setKeyword('');
     }
   };
 
@@ -407,12 +447,6 @@ const TeamPlay = () => {
   const handleAnswerSubmit = () => {
     if (selectedButton === null) return;
 
-    // Kiểm tra giới hạn submit
-    if (checkSubmitLimit(selectedButton)) {
-      console.log('Đã hết lượt trả lời cho câu này');
-      return;
-    }
-
     try {
       const key = secretKeyManager.getKey();
       if (!key) {
@@ -430,7 +464,7 @@ const TeamPlay = () => {
 
       if (isCorrect) {
         playSound(playCorrect); // Tiếng hò hét + vỗ tay khi trả lời đúng
-        toast.success(' Chính xác!', {
+        toast.success(' Chính xác! Đội của bạn được cộng 10 điểm', {
           position: "top-center",
           autoClose: 2000,
           hideProgressBar: false,
@@ -451,13 +485,22 @@ const TeamPlay = () => {
           displayAnswerOnGrid(selectedButton, currentAnswer, startColumn);
           
           setIsAnswering(false);
-        }, 1000); // Đợi 1 giây sau khi toast hiện lên
+        }, 1000);
 
-        // Thêm điểm cho đội hiện tại (ví dụ: đội 0)
-        handleTeamScoreChange(activeTeam, 10); // Cộng 10 điểm cho đội trả lời đúng
+        // Tính điểm dựa vào số lần submit
+        const isFirstAttempt = !(submitCounts[selectedButton] || 0);
+        handleTeamScoreChange(activeTeam, isFirstAttempt ? 10 : 5); // 10 điểm cho lần đầu, 5 điểm cho lần sau
+
       } else {
-        playSound(playWrong); // Tiếng fail jingle khi trả lời sai
-        toast.error(` Sai rồi! Bạn còn ${1 - (submitCounts[selectedButton] || 0)} lần thử`, {
+        playSound(playWrong);
+        
+        // Cập nhật thông báo dựa vào số lần submit
+        const isFirstAttempt = !(submitCounts[selectedButton] || 0);
+        const message = isFirstAttempt 
+          ? ' Sai rồi! Mời các đội còn lại.'
+          : ' Sai rồi! Đội của bạn bị trừ 5 điểm';
+        
+        toast.error(message, {
           position: "top-center",
           autoClose: 2000,
           hideProgressBar: false,
@@ -466,6 +509,7 @@ const TeamPlay = () => {
           draggable: false,
           progress: undefined,
         });
+
         // Tăng số lần submit và kiểm tra giới hạn
         setSubmitCounts(prev => {
           const newCount = (prev[selectedButton] || 0) + 1;
@@ -483,8 +527,10 @@ const TeamPlay = () => {
           setShowRedBorder(false);
         }, 3000);
 
-        // Trừ điểm nếu trả lời sai (tùy chọn)
-        handleTeamScoreChange(activeTeam, -5); // Trừ 5 điểm nếu trả lời sai
+        // Trừ điểm nếu không phải lần đầu trả lời
+        if (submitCounts[selectedButton]) {
+          handleTeamScoreChange(activeTeam, -5);
+        }
       }
 
       setAnswer('');
@@ -549,11 +595,13 @@ const TeamPlay = () => {
 
   // Cập nhật hàm handleTeamNameChange
   const handleTeamNameChange = (index, newName) => {
+    // Giới hạn độ dài tên đội thành 32 ký tự
+    if (newName.length > 32) return;
+
     setTeams(prevTeams => {
       const newTeams = [...prevTeams];
       const trimmedName = newName.trim();
       
-      // Nếu tên rỗng, xóa khỏi editedTeams
       if (!trimmedName) {
         setEditedTeams(prev => {
           const newSet = new Set(prev);
@@ -561,7 +609,6 @@ const TeamPlay = () => {
           return newSet;
         });
       } else {
-        // Thêm vào editedTeams nếu có tên hợp lệ
         setEditedTeams(prev => new Set(prev).add(index));
       }
       
@@ -604,7 +651,7 @@ const TeamPlay = () => {
       const newTeams = [...prevTeams];
       newTeams[index] = { 
         ...newTeams[index], 
-        score: Math.max(0, newTeams[index].score + points)
+        score: Math.max(0, newTeams[index].score + points) // Đảm bảo điểm không âm
       };
       return newTeams;
     });
@@ -666,8 +713,10 @@ const TeamPlay = () => {
               key={index}
               $isActive={activeTeam === index}
               $teamIndex={index}
+              $isGameStarted={isGameStarted}
+              $isDisabled={disabledTeams.has(index)}
               onClick={() => {
-                if (isGameStarted && editedTeams.has(index)) {
+                if (isGameStarted && editedTeams.has(index) && !disabledTeams.has(index)) {
                   setActiveTeam(index);
                 }
               }}
@@ -684,8 +733,14 @@ const TeamPlay = () => {
                       handleTeamNameBlur(index);
                     }
                   }}
+                  maxLength={32}
                   autoFocus
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isGameStarted && editedTeams.has(index) && !disabledTeams.has(index)) {
+                      setActiveTeam(index);
+                    }
+                  }}
                   placeholder={`Tên đội ${index + 1}`}
                   $teamIndex={index}
                 />
@@ -784,7 +839,7 @@ const TeamPlay = () => {
             <FormTitle>Câu hỏi</FormTitle>
             <QuestionBox>
               {!isGameStarted 
-                ? 'Vui lòng bấm "Bắt đầu chơi" để bắt đầu trò chơi'
+                ? 'Đặt tên đội để kích hoạt đội chơi. Sau đó bấm "Bắt đầu chơi" để bắt đầu trò chơi'
                 : isAllQuestionsAnswered()
                   ? 'Hãy trả lời từ khóa chính để hoàn thành trò chơi'
                   : selectedButton === null 
@@ -1230,10 +1285,13 @@ const ScoreDisplay = styled.div`
 `;
 
 const TeamButton = styled.button`
-  background: ${props => props.$isActive 
-    ? TEAM_COLORS[props.$teamIndex].hoverBg 
-    : TEAM_COLORS[props.$teamIndex].background};
-  border: 2px solid ${props => TEAM_COLORS[props.$teamIndex].border};
+  background: ${props => {
+    if (props.$isActive) {
+      return `${TEAM_COLORS[props.$teamIndex].background}dd`;
+    }
+    return TEAM_COLORS[props.$teamIndex].background;
+  }};
+  border: ${props => `2px solid ${TEAM_COLORS[props.$teamIndex].border}`};
   border-radius: 8px;
   padding: 12px 25px;
   display: flex;
@@ -1241,38 +1299,53 @@ const TeamButton = styled.button`
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  cursor: ${props => props.$isEditable ? 'pointer' : 'default'};
+  cursor: ${props => {
+    if (props.$isDisabled) return 'not-allowed';
+    if (!props.$isEditable) return 'default';
+    if (props.$isGameStarted) return 'pointer';
+    return 'default';
+  }};
   transition: all 0.3s ease;
+  position: relative;
+  opacity: ${props => props.$isDisabled ? '0.7' : '1'};
+  
+  // Viền trong (màu trắng)
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: ${props => props.$isActive ? '2px solid white' : '0'};
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: ${props => props.$isActive ? '0.8' : '0'};
+    box-shadow: ${props => props.$isActive ? '0 0 10px rgba(0,0,0,0.3)' : 'none'};
+    transition: all 0.3s ease;
+  }
+
+  // Viền ngoài (màu của team)
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border: ${props => props.$isActive ? `3px solid ${TEAM_COLORS[props.$teamIndex].border}` : '0'};
+    border-radius: 16px;
+    pointer-events: none;
+    opacity: ${props => props.$isActive ? '0.5' : '0'};
+    transition: all 0.3s ease;
+  }
 
   &:hover {
-    transform: ${props => props.$isEditable && 'translateY(-2px)'};
-    box-shadow: ${props => props.$isEditable && '0 4px 8px rgba(0,0,0,0.1)'};
-    background: ${props => TEAM_COLORS[props.$teamIndex].hoverBg};
-  }
-
-  // Animation khi xuất hiện/biến mất
-  animation: ${props => props.$isEditable ? 'slideIn' : 'slideOut'} 0.3s ease;
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideOut {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
+    transform: ${props => (props.$isGameStarted && props.$isEditable) ? 'translateY(-2px)' : 'none'};
+    background: ${props => props.$isActive 
+      ? `${TEAM_COLORS[props.$teamIndex].background}dd`
+      : TEAM_COLORS[props.$teamIndex].background
+    };
   }
 `;
 
@@ -1286,7 +1359,7 @@ const TeamNameInput = styled.input`
   text-align: left;
   background: white;
   color: #333;
-  cursor: text;
+  cursor: pointer;
 
   &::placeholder {
     color: #999;
