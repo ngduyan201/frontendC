@@ -22,8 +22,15 @@ const Modal = ({ isOpen, onClose, data }) => {
             toast.error(response.message || 'Không thể bắt đầu trò chơi');
           }
         }
-        
         navigate('/play');
+      } else if (gameMode === 'team') {
+        // Thêm logic cho chế độ team
+        const response = await crosswordService.startSinglePlay(data._id);
+        if (response.success) {
+          navigate('/team-play');
+        } else {
+          toast.error(response.message || 'Không thể bắt đầu trò chơi');
+        }
       }
       onClose();
     } catch (error) {
