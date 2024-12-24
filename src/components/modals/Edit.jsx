@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { crosswordService } from '../../services/crosswordService';
 import { toast } from 'react-toastify';
 
-const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
+const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSuccess }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(data || {
     title: '',
@@ -13,12 +13,38 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
     subject: '',
   });
   const [isEditing, setIsEditing] = useState(mode === 'create');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteButtonEnabled, setDeleteButtonEnabled] = useState(false);
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     if (mode === 'edit') {
       setFormData(data);
     }
   }, [data, mode]);
+
+  useEffect(() => {
+    let timer;
+    if (showDeleteConfirm) {
+      setDeleteButtonEnabled(false);
+      setCountdown(3);
+      
+      timer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setDeleteButtonEnabled(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      clearInterval(timer);
+      setCountdown(3);
+    };
+  }, [showDeleteConfirm]);
 
   const handlePlayClick = () => {
     navigate('/team-play');
@@ -117,6 +143,27 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
       console.error('Error in handleCreateClick:', error);
       alert('Có lỗi xảy ra khi tạo ô chữ');
     }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await crosswordService.deleteCrossword(data._id);
+      if (response.success) {
+        toast.success('Xóa ô chữ thành công');
+        onClose();
+        if (onDeleteSuccess) {
+          onDeleteSuccess();
+        } else {
+          navigate('/account');
+        }
+      } else {
+        toast.error(response.message || 'Không thể xóa ô chữ');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Có lỗi xảy ra khi xóa ô chữ');
+    }
+    setShowDeleteConfirm(false);
   };
 
   if (!isOpen) return null;
@@ -220,6 +267,9 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
                 <EditInfoButton onClick={handleEditInfoClick}>
                   {isEditing ? 'Lưu lại' : 'Chỉnh sửa thông tin'}
                 </EditInfoButton>
+                <DeleteButton onClick={() => setShowDeleteConfirm(true)}>
+                  Xóa ô chữ
+                </DeleteButton>
               </ButtonGroup>
               <ButtonGroup>
                 <EditContentButton onClick={handleEditContentClick}>
@@ -230,6 +280,26 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave }) => {
             </>
           )}
         </ModalActions>
+
+        {showDeleteConfirm && (
+          <DeleteConfirmModal>
+            <DeleteConfirmContent>
+              <h3>Xác nhận xóa</h3>
+              <p>Bạn có chắc chắn muốn xóa ô chữ này? Dữ liệu sẽ không thể khôi phục.</p>
+              <DeleteConfirmActions>
+                <BackButton onClick={() => setShowDeleteConfirm(false)}>
+                  Quay lại
+                </BackButton>
+                <ConfirmDeleteButton 
+                  disabled={!deleteButtonEnabled}
+                  onClick={handleDelete}
+                >
+                  {deleteButtonEnabled ? 'Xác nhận xóa' : `Vui lòng đợi ${countdown}s...`}
+                </ConfirmDeleteButton>
+              </DeleteConfirmActions>
+            </DeleteConfirmContent>
+          </DeleteConfirmModal>
+        )}
       </ModalContainer>
     </ModalOverlay>
   );
@@ -521,5 +591,66 @@ const StatusButton = styled.button`
     visibility: visible;
     opacity: 1;
     bottom: calc(100% + 10px);
+  }
+`;
+
+const DeleteButton = styled(Button)`
+  background-color: #dc3545;
+  color: white;
+
+  &:hover {
+    background-color: #c82333;
+  }
+`;
+
+const DeleteConfirmModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+`;
+
+const DeleteConfirmContent = styled.div`
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+
+  h3 {
+    margin: 0 0 16px;
+    color: #dc3545;
+  }
+
+  p {
+    margin: 0 0 24px;
+    line-height: 1.5;
+  }
+`;
+
+const DeleteConfirmActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const ConfirmDeleteButton = styled(Button)`
+  background-color: ${props => props.disabled ? '#6c757d' : '#dc3545'};
+  color: white;
+  min-width: 120px;
+
+  &:hover:not(:disabled) {
+    background-color: #c82333;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 `;

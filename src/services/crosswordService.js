@@ -65,11 +65,14 @@ export const crosswordService = {
       if (!id) {
         throw new Error('ID ô chữ không được để trống');
       }
-      console.log('Deleting crossword:', id);
       const response = await api.delete(API_URLS.CROSSWORDS.DELETE(id));
       return response;
     } catch (error) {
-      throw error;
+      console.error('Delete crossword error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Có lỗi xảy ra khi xóa ô chữ'
+      };
     }
   },
 
@@ -220,7 +223,6 @@ export const crosswordService = {
       
       console.log('Response từ API startPlay:', response);
 
-      // Lưu toàn bộ response vào localStorage
       if (response.success) {
         localStorage.setItem('crosswordPlayData', JSON.stringify({
           success: response.success,
