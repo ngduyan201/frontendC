@@ -469,9 +469,28 @@ const PlayPage = () => {
     return answer.length === expectedLength;
   };
 
-  // Thêm hàm kiểm tra số lần trả lời sai
-  const hasReachedMaxAttempts = (index) => {
-    return (submitCounts[index] || 0) >= 2;
+  // Thêm state để theo dõi câu hỏi bị bỏ qua
+  const [skippedQuestions, setSkippedQuestions] = useState({});
+
+  // Cập nhật hàm kiểm tra số lần submit
+  const hasReachedMaxAttempts = (questionIndex) => {
+    return (submitCounts[questionIndex] || 0) >= 2 || skippedQuestions[questionIndex];
+  };
+
+  // Thêm hàm xử lý bỏ qua câu hỏi
+  const handleSkipQuestion = () => {
+    if (selectedButton === null) return;
+
+    setSkippedQuestions(prev => ({
+      ...prev,
+      [selectedButton]: true
+    }));
+
+    // Reset trạng thái câu hỏi hiện tại
+    setSelectedButton(null);
+    setAnswer('');
+    setIsAnswering(false);
+    setQuestionData('');
   };
 
   // Thêm hàm kiểm tra tất cả câu hỏi đã được trả lời
@@ -593,22 +612,45 @@ const PlayPage = () => {
           <AnswerForm>
             <FormHeader>
               <FormTitle>Nhập đáp án</FormTitle>
-              <SubmitButton 
-                onClick={handleAnswerSubmit}
-                disabled={
-                  !isGameStarted || 
-                  selectedButton === null || 
-                  checkSubmitLimit(selectedButton) ||
-                  !checkAnswerLength() // Thêm điều kiện kiểm tra độ dài
-                }
-              >
-                Xác nhận
-              </SubmitButton>
+              <ButtonGroup>
+                <SubmitButton 
+                  onClick={handleAnswerSubmit}
+                  disabled={
+                    !isGameStarted || 
+                    selectedButton === null || 
+                    checkSubmitLimit(selectedButton) ||
+                    !checkAnswerLength()
+                  }
+                >
+                  Xác nhận
+                </SubmitButton>
+                {isAnswering && ( // Chỉ hiện nút bỏ qua khi đang trả lời
+                  <SkipButton 
+                    onClick={handleSkipQuestion}
+                    disabled={
+                      !isGameStarted || 
+                      selectedButton === null || 
+                      skippedQuestions[selectedButton]
+                    }
+                  >
+                    Bỏ qua
+                  </SkipButton>
+                )}
+              </ButtonGroup>
             </FormHeader>
             <AnswerInputBox 
               type="text" 
               value={answer} 
-              onChange={handleAnswerChange} 
+              onChange={handleAnswerChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && 
+                    isGameStarted && 
+                    selectedButton !== null && 
+                    !checkSubmitLimit(selectedButton) && 
+                    checkAnswerLength()) {
+                  handleAnswerSubmit();
+                }
+              }}
               placeholder={
                 !isGameStarted 
                   ? "Vui lòng bắt đầu chơi..." 
@@ -985,4 +1027,30 @@ const AnswerInputBox = styled(InputBox)`
   &:focus {
     border-color: ${props => props.$showRedBorder ? '#ff4d4d' : '#333'};
   }
+`;
+
+const SkipButton = styled.button`
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #6c757d;
+  color: white;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${props => props.disabled ? 0.6 : 1};
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #5a6268;
+  }
+
+  &:disabled {
+    background-color: #dee2e6;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 `;

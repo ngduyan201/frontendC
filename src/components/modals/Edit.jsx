@@ -166,6 +166,34 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
     setShowDeleteConfirm(false);
   };
 
+  const handleTeamPlay = async () => {
+    try {
+      // Sử dụng lại API team play hiện có
+      const response = await crosswordService.startSinglePlay(data._id);
+      if (response.success) {
+        navigate('/team-play');
+        onClose();
+      } else {
+        toast.error(response.message || 'Không thể bắt đầu chế độ chơi theo đội');
+      }
+    } catch (error) {
+      console.error('Team play error:', error);
+      toast.error('Có lỗi xảy ra khi bắt đầu chế độ chơi theo đội');
+    }
+  };
+
+  const handleClose = async () => {
+    try {
+      // Gọi API để xóa session
+      await crosswordService.clearPlaySession();
+      onClose();
+    } catch (error) {
+      console.error('Error clearing session:', error);
+      // Vẫn đóng modal ngay cả khi có lỗi
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -175,7 +203,7 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
           <ModalTitle>
             {mode === 'create' ? 'Tạo ô chữ mới' : 'Thông tin ô chữ'}
           </ModalTitle>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <CloseButton onClick={handleClose}>&times;</CloseButton>
         </ModalHeader>
         
         <ModalContent>
@@ -256,14 +284,14 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
           {mode === 'create' ? (
             // Hiển thị nút cho chế độ tạo mới
             <ButtonGroup style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <BackButton onClick={onClose}>Huỷ</BackButton>
+              <BackButton onClick={handleClose}>Huỷ</BackButton>
               <CreateButton onClick={handleCreateClick}>Tạo mới</CreateButton>
             </ButtonGroup>
           ) : (
             // Hiển thị các nút cho chế độ chỉnh sửa
             <>
               <ButtonGroup>
-                <BackButton onClick={onClose}>Huỷ</BackButton>
+                <BackButton onClick={handleClose}>Huỷ</BackButton>
                 <EditInfoButton onClick={handleEditInfoClick}>
                   {isEditing ? 'Lưu lại' : 'Chỉnh sửa thông tin'}
                 </EditInfoButton>
@@ -277,7 +305,9 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
                 <EditContentButton onClick={handleEditContentClick}>
                   Chỉnh sửa nội dung
                 </EditContentButton>
-                <PlayButton onClick={handlePlayClick}>Chơi</PlayButton>
+                <TeamPlayButton onClick={handleTeamPlay}>
+                  Chơi
+                </TeamPlayButton>
               </ButtonGroup>
             </>
           )}
@@ -503,11 +533,12 @@ const EditContentButton = styled(Button)`
   }
 `;
 
-const PlayButton = styled(Button)`
+const TeamPlayButton = styled(Button)`
   background-color: #4CAF50;
   color: white;
 
   &:hover {
+
     background-color: #45a049;
   }
 `;
