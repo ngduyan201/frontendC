@@ -74,12 +74,12 @@
             lastModified
           } = JSON.parse(savedSession);
 
-          // Kiểm tra thời gian lưu không quá 1 ngày
+          // Kiểm tra thời gian lưu không quá 1 giờ
           const lastModifiedDate = new Date(lastModified);
           const now = new Date();
           const diffHours = Math.abs(now - lastModifiedDate) / 36e5;
 
-          if (diffHours <= 24) {
+          if (diffHours <= 1) {
             setPuzzleData(savedPuzzleData);
             setQuestionsData(savedQuestionsData);
             setLetters(savedLetters);

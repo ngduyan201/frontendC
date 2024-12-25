@@ -263,6 +263,7 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
                 placeholder="Nhập tên ô chữ"
                 disabled={!isEditing}
                 $hasError={!!titleError}
+                maxLength={32}
               />
               {checkingTitle && <LoadingSpinner />}
               {titleError && <ErrorMessage>{titleError}</ErrorMessage>}
