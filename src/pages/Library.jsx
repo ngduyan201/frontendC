@@ -90,7 +90,8 @@ const Library = () => {
       numQuestions: crossword.questionCount,
       author: crossword.author,
       grade: crossword.grade,
-      subject: crossword.subject
+      subject: crossword.subject,
+      timesPlayed: crossword.timesPlayed || 0
     };
     
     setSelectedCrossword(modalData);
@@ -180,13 +181,13 @@ const Library = () => {
   };
 
   return (
-    <LibraryContainer>
+    <Container>
       <SearchContainer>
         <SearchGroup>
           <SearchLabel>Nhập nội dung bạn muốn khám phá ở đây:</SearchLabel>
           <SearchInput 
             type="text" 
-            placeholder="Tìm kiếm ô chữ..." 
+            placeholder="Hãy nhập gì đó..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -250,7 +251,9 @@ const Library = () => {
                   key={crossword._id}
                   title={crossword.title}
                   questionCount={crossword.questionCount}
+                  timesPlayed={crossword.timesPlayed || 0}
                   author={crossword.author}
+                  grade={crossword.grade}
                   onClick={() => handleCardClick(crossword)}
                 />
             ))}
@@ -272,56 +275,56 @@ const Library = () => {
         </SearchResultsContainer>
       ) : (
         <LibraryContent>
-          <LibraryColumn>
-            <ColumnHeader>
-              <ColumnTitle>Ô chữ ngẫu nhiên</ColumnTitle>
-            </ColumnHeader>
-            <CrosswordList>
-              {libraryCrosswords.random.map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  author={crossword.author}
-                  onClick={() => handleCardClick(crossword)}
-                />
-              ))}
-            </CrosswordList>
-          </LibraryColumn>
-
-          <LibraryColumn>
-            <ColumnHeader>
-              <ColumnTitle>Được chơi nhiều nhất</ColumnTitle>
-            </ColumnHeader>
-            <CrosswordList>
-              {libraryCrosswords.mostPlayed.map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  author={crossword.author}
-                  onClick={() => handleCardClick(crossword)}
-                />
-              ))}
-            </CrosswordList>
-          </LibraryColumn>
-
-          <LibraryColumn>
-            <ColumnHeader>
-              <ColumnTitle>Ô chữ mới nhất</ColumnTitle>
-            </ColumnHeader>
-            <CrosswordList>
+          <Section color="#f0f4f8">
+            <SectionTitle>Ô chữ mới nhất</SectionTitle>
+            <CardGrid>
               {libraryCrosswords.newest.map((crossword) => (
                 <CrosswordCard 
                   key={crossword._id}
                   title={crossword.title}
                   questionCount={crossword.questionCount}
+                  timesPlayed={crossword.timesPlayed || 0}
                   author={crossword.author}
+                  grade={crossword.grade}
                   onClick={() => handleCardClick(crossword)}
                 />
               ))}
-            </CrosswordList>
-          </LibraryColumn>
+            </CardGrid>
+          </Section>
+
+          <Section color="#fff5f5">
+            <SectionTitle>Ô chữ phổ biến</SectionTitle>
+            <CardGrid>
+              {libraryCrosswords.mostPlayed.map((crossword) => (
+                <CrosswordCard 
+                  key={crossword._id}
+                  title={crossword.title}
+                  questionCount={crossword.questionCount}
+                  timesPlayed={crossword.timesPlayed || 0}
+                  author={crossword.author}
+                  grade={crossword.grade}
+                  onClick={() => handleCardClick(crossword)}
+                />
+              ))}
+            </CardGrid>
+          </Section>
+
+          <Section color="#f0f8f1">
+            <SectionTitle>Ô chữ ngẫu nhiên</SectionTitle>
+            <CardGrid>
+              {libraryCrosswords.random.map((crossword) => (
+                <CrosswordCard 
+                  key={crossword._id}
+                  title={crossword.title}
+                  questionCount={crossword.questionCount}
+                  timesPlayed={crossword.timesPlayed || 0}
+                  author={crossword.author}
+                  grade={crossword.grade}
+                  onClick={() => handleCardClick(crossword)}
+                />
+              ))}
+            </CardGrid>
+          </Section>
         </LibraryContent>
       )}
 
@@ -339,18 +342,17 @@ const Library = () => {
           <LoadingSpinner />
         </LoadingOverlay>
       )}
-    </LibraryContainer>
+    </Container>
   );
 };
 
 export default Library;
 
 // Styled Components
-const LibraryContainer = styled.div`
-  background-size: cover;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  padding: 20px;
+const Container = styled.div`
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
 `;
 
 const SearchContainer = styled.div`
@@ -559,4 +561,29 @@ const LoadingOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+`;
+
+const SectionTitle = styled.h2`
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #3498db;
+`;
+
+const Section = styled.div`
+  background-color: ${props => props.color || '#f8f9fa'};
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+`;
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  padding: 10px 0;
 `;

@@ -1,6 +1,19 @@
 import React, { memo } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { FaUser, FaQuestion, FaGamepad } from 'react-icons/fa';
+
+const getBackgroundColor = (grade) => {
+  const gradeNum = parseInt(grade.replace('Lớp ', ''));
+  
+  if (gradeNum >= 1 && gradeNum <= 5) {
+    return '#adff2f'; // greenyellow
+  } else if (gradeNum >= 6 && gradeNum <= 9) {
+    return '#87cefa'; // lightskyblue
+  } else {
+    return '#ffb6c1'; // lightpink (10-12 và các trường hợp khác)
+  }
+};
 
 const CrosswordCard = memo(({ 
   title = 'Ô chữ không có tên',
@@ -8,14 +21,23 @@ const CrosswordCard = memo(({
   author = 'Ẩn danh',
   width = '100%',
   height = '150px',
-  onClick 
+  onClick,
+  timesPlayed = 0,
+  grade = '1'
 }) => {
   return (
-    <CardContainer $width={width} $height={height} onClick={onClick}>
+    <CardContainer $width={width} $height={height} onClick={onClick} $grade={grade}>
       <Title>{title}</Title>
       <CardFooter>
-        <QuestionCount>Số câu hỏi: {questionCount}</QuestionCount>
-        <Author>Tác giả: {author}</Author>
+        <InfoItem>
+          <FaQuestion size={18} color="#FF9800" /> {questionCount}
+        </InfoItem>
+        <InfoItem>
+          <FaUser size={18} color="#2196F3" /> {author}
+        </InfoItem>
+        <InfoItem>
+          <FaGamepad size={18} color="#9C27B0" /> {timesPlayed}
+        </InfoItem>
       </CardFooter>
     </CardContainer>
   );
@@ -27,11 +49,13 @@ CrosswordCard.propTypes = {
   author: PropTypes.string,
   width: PropTypes.string,
   height: PropTypes.string,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  timesPlayed: PropTypes.number,
+  grade: PropTypes.string
 };
 
 const CardContainer = styled.div`
-  background: white;
+  background: ${props => getBackgroundColor(props.$grade)};
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -42,6 +66,8 @@ const CardContainer = styled.div`
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  min-width: 300px;
+  max-width: 400px;
 
   &:hover {
     transform: translateY(-4px);
@@ -63,16 +89,21 @@ const CardFooter = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
+  gap: 15px;
+  flex-wrap: nowrap;
 `;
 
-const QuestionCount = styled.span`
+const InfoItem = styled.span`
   color: #666;
-  font-size: 1rem;
-`;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 
-const Author = styled.span`
-  color: #666;
-  font-size: 1rem;
+  svg {
+    color: #555;
+  }
 `;
 
 export default CrosswordCard;
