@@ -326,6 +326,16 @@ export const crosswordService = {
         }
       };
     }
+  },
+
+  checkDuplicateTitle: async (title) => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.CHECK_TITLE, { title });
+      return response;
+    } catch (error) {
+      console.error('Check duplicate title error:', error);
+      throw error;
+    }
   }
 };
 

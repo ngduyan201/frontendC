@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { crosswordService } from '../../services/crosswordService';
 import { toast } from 'react-toastify';
+import { debounce } from 'lodash';
 
 const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSuccess }) => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteButtonEnabled, setDeleteButtonEnabled] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [titleError, setTitleError] = useState('');
+  const [checkingTitle, setCheckingTitle] = useState(false);
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -46,6 +49,36 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
     };
   }, [showDeleteConfirm]);
 
+  const debouncedCheckTitle = useCallback(
+    debounce(async (title) => {
+      if (!title) {
+        setTitleError('');
+        return;
+      }
+
+      try {
+        setCheckingTitle(true);
+        const response = await crosswordService.checkDuplicateTitle(title);
+        
+        if (response.success) {
+          if (mode === 'edit' && title === data?.title) {
+            setTitleError('');
+          } else if (response.isDuplicate) {
+            setTitleError('Tên ô chữ đã tồn tại');
+          } else {
+            setTitleError('');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking title:', error);
+        setTitleError('Có lỗi xảy ra khi kiểm tra tên');
+      } finally {
+        setCheckingTitle(false);
+      }
+    }, 500),
+    [mode, data?.title]
+  );
+
   const handlePlayClick = () => {
     navigate('/team-play');
     onClose();
@@ -70,6 +103,10 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
 
   const handleEditInfoClick = () => {
     if (isEditing) {
+      if (titleError) {
+        toast.error('Vui lòng chọn tên ô chữ khác');
+        return;
+      }
       // Log data trước khi gửi đi
       console.log('Form data being sent:', formData);
       onSave(formData);
@@ -110,10 +147,18 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
       ...prev,
       [name]: value
     }));
+
+    if (name === 'title' && (isEditing || mode === 'create')) {
+      debouncedCheckTitle(value);
+    }
   };
 
   const handleCreateClick = async () => {
     try {
+      if (titleError) {
+        toast.error('Vui lòng chọn tên ô chữ khác');
+        return;
+      }
       // Validate dữ liệu
       if (!formData.title || !formData.status || !formData.grade || !formData.subject) {
         alert('Vui lòng điền đầy đủ thông tin');
@@ -209,14 +254,19 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         <ModalContent>
           <InfoGroup>
             <InfoLabel>Tên ô chữ:</InfoLabel>
-            <Input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="Nhập tên ô chữ"
-              disabled={!isEditing}
-            />
+            <TitleInputWrapper>
+              <Input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="Nhập tên ô chữ"
+                disabled={!isEditing}
+                $hasError={!!titleError}
+              />
+              {checkingTitle && <LoadingSpinner />}
+              {titleError && <ErrorMessage>{titleError}</ErrorMessage>}
+            </TitleInputWrapper>
           </InfoGroup>
 
           <InfoGroup>
@@ -427,14 +477,15 @@ const Input = styled.input`
   flex: 2;
   padding: 12px;
   font-size: 1.1rem;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => props.$hasError ? '#dc3545' : '#ddd'};
   border-radius: 6px;
   outline: none;
   transition: all 0.3s ease;
+  width: 100%;
 
   &:focus {
-    border-color: #666;
-    box-shadow: 0 0 0 2px rgba(102, 102, 102, 0.1);
+    border-color: ${props => props.$hasError ? '#dc3545' : '#666'};
+    box-shadow: 0 0 0 2px ${props => props.$hasError ? 'rgba(220, 53, 69, 0.1)' : 'rgba(102, 102, 102, 0.1)'};
   }
 
   &::placeholder {
@@ -685,5 +736,35 @@ const ConfirmDeleteButton = styled(Button)`
   &:disabled {
     cursor: not-allowed;
     opacity: 0.7;
+  }
+`;
+
+const TitleInputWrapper = styled.div`
+  flex: 2;
+  position: relative;
+`;
+
+const ErrorMessage = styled.div`
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 4px;
+  position: absolute;
+`;
+
+const LoadingSpinner = styled.div`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
   }
 `;
