@@ -25,9 +25,13 @@ const CrosswordCard = memo(({
   timesPlayed = 0,
   grade = '1'
 }) => {
+  const isLongTitle = title.length > 20;
+
   return (
     <CardContainer $width={width} $height={height} onClick={onClick} $grade={grade}>
-      <Title>{title}</Title>
+      <Title $isLongTitle={isLongTitle} title={isLongTitle ? title : undefined}>
+        {title}
+      </Title>
       <CardFooter>
         <InfoItem>
           <FaQuestion size={18} color="#FF9800" /> {questionCount}
@@ -82,6 +86,13 @@ const Title = styled.h2`
   text-align: center;
   font-weight: bold;
   margin-bottom: 20px;
+  padding: 2px 8px;
+  
+  ${props => props.$isLongTitle ? `
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  ` : ''}
 `;
 
 const CardFooter = styled.div`

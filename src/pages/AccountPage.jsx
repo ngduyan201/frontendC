@@ -204,10 +204,11 @@ const AccountPage = () => {
 
   const handleCloseModal = useCallback(() => {
     setShowEditModal(false);
+    loadCrosswords();
     setTimeout(() => {
       setSelectedCrossword(null);
     }, 300);
-  }, []);
+  }, [loadCrosswords]);
 
   const handleUpdateCrossword = useCallback(async (updatedData) => {
     try {
