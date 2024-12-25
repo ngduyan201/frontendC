@@ -264,7 +264,7 @@ export const crosswordService = {
   clearPlaySession: async () => {
     try {
       // Gọi API để xóa session
-      const response = await api.post(API_URLS.CROSSWORDS.END_SESSION);
+      const response = await api.post(API_URLS.CROSSWORDS.CLEAR_SESSION);
       
       // Xóa dữ liệu từ localStorage
       localStorage.removeItem('crosswordPlayData');
