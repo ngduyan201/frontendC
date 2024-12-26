@@ -145,7 +145,6 @@
           }
         } catch (error) {
           console.error('Session check error:', error);
-          toast.error('Có lỗi xảy ra khi tải dữ liệu ô chữ');
         }
       };
 

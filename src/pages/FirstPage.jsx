@@ -1,10 +1,8 @@
 import { useState } from 'react'; 
-import { useNavigate } from 'react-router-dom';
 import bg1 from '../assets/imgs/bg1.jpeg';
 import logo from '../assets/imgs/logo.png';
 import LoginForm from '../components/features/LoginForm'; // Import LoginForm
 import RegisterForm from '../components/features/RegisterForm'; // Import RegisterForm
-import { toast } from 'react-toastify'; // Import toast for notifications
 import { useAuth } from '../contexts/AuthContext';
 
 function FirstPage() {
