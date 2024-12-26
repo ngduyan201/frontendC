@@ -1,5 +1,24 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import G1 from '../assets/guides/G1.png';
+import G2 from '../assets/guides/G2.png';
+import G3 from '../assets/guides/G3.png';
+import G4 from '../assets/guides/G4.png';
+import G5 from '../assets/guides/G5.png';
+import G6 from '../assets/guides/G6.png';
+import G7 from '../assets/guides/G7.png';
+import G8 from '../assets/guides/G8.png';
+import G9 from '../assets/guides/G9.png';
+import P0 from '../assets/plays/P0.png';
+import P1 from '../assets/plays/P1.png';
+import P2 from '../assets/plays/P2.png';
+import P3 from '../assets/plays/P3.png';
+import P4 from '../assets/plays/P4.png';
+import P5 from '../assets/plays/P5.png';
+import P6 from '../assets/plays/P6.png';
+import P7 from '../assets/plays/P7.png';
+import P8 from '../assets/plays/P8.png';
+import P9 from '../assets/plays/P9.png';
 
 const GuidePage = () => {
   const [activeTab, setActiveTab] = useState('create'); // 'create' hoặc 'play'
@@ -36,13 +55,13 @@ const GuidePage = () => {
                 • Tại Trang chủ, nhấn vào nút "Tạo Ô Chữ" để bắt đầu tiến trình.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G1.jpg" alt="Bắt đầu tạo ô chữ" />
+                <GuideImage src={G1} alt="Bắt đầu tạo ô chữ" />
               </ImageContainer>
               <Paragraph>
                 • Sau khi nhấn, hệ thống sẽ hiển thị bảng thông tin tạo ô chữ. Hãy điền đầy đủ thông tin được yêu cầu để tiến hành khởi tạo.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G2.jpg" alt="Bảng thông tin tạo ô chữ" />
+                <GuideImage src={G2} alt="Bảng thông tin tạo ô chữ" />
               </ImageContainer>
             </Section>
 
@@ -65,7 +84,7 @@ const GuidePage = () => {
                 • Môn học: Dựa trên cấp lớp đã chọn, hệ thống sẽ đề xuất danh sách môn học phù hợp.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G3.jpg" alt="Thông tin cần cung cấp" />
+                <GuideImage src={G3} alt="Thông tin cần cung cấp" />
               </ImageContainer>
             </Section>
 
@@ -75,7 +94,7 @@ const GuidePage = () => {
                 • Sau khi hoàn tất thông tin, nhấn "Tạo mới" để chuyển đến trang khởi tạo nội dung.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G4.jpg" alt="Trang khởi tạo nội dung" />
+                <GuideImage src={G4} alt="Trang khởi tạo nội dung" />
               </ImageContainer>
               <Paragraph>
                 • Tại đây, bạn có thể bắt đầu nhập từ khoá trong ô trên cùng. Số ký tự của từ khóa sẽ quyết định số lượng câu hỏi tương ứng.
@@ -84,7 +103,7 @@ const GuidePage = () => {
                 <ListItem>Từ khóa phải có độ dài từ 3-16 ký tự, hệ thống không nhận khoảng trắng, ký tự đặc biệt hay dấu câu.</ListItem>
               </SubList>
               <ImageContainer>
-                <GuideImage src="/images/guide/G5.jpg" alt="Nhập từ khóa" />
+                <GuideImage src={G5} alt="Nhập từ khóa" />
               </ImageContainer>
             </Section>
 
@@ -98,7 +117,7 @@ const GuidePage = () => {
                 <ListItem>Đáp án: Dài từ 2-14 ký tự, phải chứa ký tự khớp với từ khóa hàng dọc. Đáp án không được dài hơn 9 ký tự tính từ vị trí ký tự khớp.</ListItem>
               </SubList>
               <ImageContainer>
-                <GuideImage src="/images/guide/G6.jpg" alt="Nhập câu hỏi và đáp án" />
+                <GuideImage src={G6} alt="Nhập câu hỏi và đáp án" />
               </ImageContainer>
               <Paragraph>
                 • Hệ thống không bắt buộc thứ tự nhập câu hỏi. Hệ thống sẽ tự động ghi nhớ và hiển thị khi bạn quay lại chỉnh sửa từng câu hỏi.
@@ -107,7 +126,7 @@ const GuidePage = () => {
                 • Khi đã hoàn tất, nút "Lưu lại" sẽ khả dụng. Nhấn vào để lưu.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G7.jpg" alt="Lưu ô chữ" />
+                <GuideImage src={G7} alt="Lưu ô chữ" />
               </ImageContainer>
             </Section>
 
@@ -117,7 +136,7 @@ const GuidePage = () => {
                 • Nếu nhấn "Quay lại" trong lúc tạo, ô chữ sẽ được khởi tạo với thông tin bạn đã nhập nhưng nội dung trống. Bạn có thể chỉnh sửa hoặc xóa trong Trang Tài khoản.
               </Paragraph>
               <ImageContainer>
-                <GuideImage src="/images/guide/G8.jpg" alt="Quản lý ô chữ" />
+                <GuideImage src={G8} alt="Quản lý ô chữ" />
               </ImageContainer>
               <Paragraph>
                 • Nếu rời khỏi hoặc làm mới trang khởi tạo, hệ thống sẽ lưu tiến trình trong vòng 1 giờ. Sau thời gian này, dữ liệu sẽ bị xóa.
@@ -135,7 +154,7 @@ const GuidePage = () => {
                 <ListItem>Xóa: Xóa hoàn toàn ô chữ (không thể khôi phục lại).</ListItem>
               </SubList>
               <ImageContainer>
-                <GuideImage src="/images/guide/G9.jpg" alt="Chỉnh sửa và xóa ô chữ" />
+                <GuideImage src={G9} alt="Chỉnh sửa và xóa ô chữ" />
               </ImageContainer>
             </Section>
 
@@ -162,6 +181,9 @@ const GuidePage = () => {
               <Paragraph>
                 • Đây là chế độ lý tưởng để bạn khám phá kiến thức thông qua các ô chữ.
               </Paragraph>
+              <ImageContainer>
+                <GuideImage src={P0} alt="Chế độ Chơi" />
+              </ImageContainer>
               <Paragraph>
                 • Chọn chế độ Chơi một mình và nhấn Bắt đầu chơi để khởi động.
               </Paragraph>
@@ -172,7 +194,7 @@ const GuidePage = () => {
                   • Chọn câu hỏi: Nhấn vào các nút bên trái để chọn câu hỏi. Lưu ý, bạn phải hoàn thành câu hỏi hiện tại trước khi chọn câu khác.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P1.jpg" alt="Chọn câu hỏi" />
+                  <GuideImage src={P1} alt="Chọn câu hỏi" />
                 </ImageContainer>
                 
                 <Paragraph>
@@ -182,21 +204,21 @@ const GuidePage = () => {
                   • Bỏ qua: Nếu không có đáp án, bạn có thể nhấn Bỏ qua.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P2.jpg" alt="Bỏ qua câu hỏi" />
+                  <GuideImage src={P2} alt="Bỏ qua câu hỏi" />
                 </ImageContainer>
                 
                 <Paragraph>
                   • Trả lời từ khóa: Bạn có thể thử trả lời từ khóa chính bất kỳ lúc nào. Không giới hạn số lần thử.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P3.jpg" alt="Trả lời từ khóa" />
+                  <GuideImage src={P3} alt="Trả lời từ khóa" />
                 </ImageContainer>
                 
                 <Paragraph>
-                  • Chơi lại: Bạn có thể nhấn nút Chơi lại từ đầu để bắt đầu lại thay vì thoát ra và vào lại.
+                  • Xem đáp án: Chỉ sau khi trả lời đúng từ khoá, bạn có thể nhấn nút Xem đáp án để xem đáp án của câu hỏi hiện tại.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P4.jpg" alt="Chơi lại" />
+                  <GuideImage src={P4} alt="Xem đáp án" />
                 </ImageContainer>
               </SubSection>
             </Section>
@@ -216,7 +238,7 @@ const GuidePage = () => {
                   • Hệ thống hỗ trợ âm thanh. Bạn có thể bật hoặc tắt tùy ý.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P5.jpg" alt="Thiết lập đội" />
+                  <GuideImage src={P5} alt="Thiết lập đội" />
                 </ImageContainer>
               </SubSection>
 
@@ -227,7 +249,7 @@ const GuidePage = () => {
                   • Nhấn vào bảng đội để xác định lượt chơi. Điểm sẽ được cộng hoặc trừ cho đội đang được chọn.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P7.jpg" alt="Chọn đội" />
+                  <GuideImage src={P6} alt="Chọn đội" />
                 </ImageContainer>
                 
                 <Paragraph>• Điểm thưởng:</Paragraph>
@@ -236,7 +258,7 @@ const GuidePage = () => {
                   <ListItem>Trả lời sai lần đầu: Không bị trừ điểm, quyền trả lời chuyển cho đội khác.</ListItem>
                 </SubList>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P8.jpg" alt="Điểm thưởng" />
+                  <GuideImage src={P7} alt="Điểm thưởng" />
                 </ImageContainer>
 
                 <Paragraph>• Đội khác nếu được chọn trả lời (lần thứ 2):</Paragraph>
@@ -258,7 +280,7 @@ const GuidePage = () => {
                   <ListItem>Công thức: 5 × (số ký tự từ khóa) - 5 × (số ký tự đã hiện).</ListItem>
                 </SubList>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P10.jpg" alt="Điểm từ khóa" />
+                  <GuideImage src={P8} alt="Điểm từ khóa" />
                 </ImageContainer>
                 
                 <Paragraph>
@@ -280,8 +302,11 @@ const GuidePage = () => {
                   • Bạn có thể kết thúc bất kỳ lúc nào bằng cách nhấn Tổng kết điểm ở góc phải màn hình. Hệ thống sẽ thông báo đội chiến thắng.
                 </Paragraph>
                 <ImageContainer>
-                  <GuideImage src="/images/guide/P11.jpg" alt="Kết thúc trò chơi" />
+                  <GuideImage src={P9} alt="Kết thúc trò chơi" />
                 </ImageContainer>
+                <Paragraph>
+                  Đó là toàn bộ những gì bạn cần biết về cách chơi trò chơi ô chữ trên hệ thống. Chúc bạn có những trải nghiệm thú vị và học tập hiệu quả!
+                </Paragraph>
               </SubSection>
             </Section>
           </GuideContent>

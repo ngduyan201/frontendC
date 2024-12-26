@@ -716,17 +716,20 @@ const TeamPlay = () => {
   const [activeTeam, setActiveTeam] = useState(0);
 
   // Thêm state để quản lý trạng thái âm thanh
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
 
-  // Cập nhật hàm playSound để kiểm tra trạng thái mute
+  // Cập nhật hàm playSound để sử dụng volume
   const playSound = (soundFunction) => {
-    if (!isMuted) {
-      try {
-        soundFunction();
-      } catch (error) {
-        console.log('Lỗi phát âm thanh:', error);
-      }
+    try {
+      soundFunction({ volume });
+    } catch (error) {
+      console.log('Lỗi phát âm thanh:', error);
     }
+  };
+
+  // Hàm toggle volume
+  const toggleVolume = () => {
+    setVolume(prev => prev === 0 ? 1 : 0);
   };
 
   const SkipButton = styled(SubmitButton)`
@@ -820,8 +823,8 @@ const TeamPlay = () => {
              gameState === 'ended' ? 'Xem đáp án' :
              'Chơi lại'}
           </StartButton>
-          <SoundButton onClick={() => setIsMuted(!isMuted)}>
-            {isMuted ? '🔇' : '🔊'}
+          <SoundButton onClick={toggleVolume}>
+            {volume === 0 ? '🔇' : '🔊'}
           </SoundButton>
         </ButtonGroup>
       </Banner>

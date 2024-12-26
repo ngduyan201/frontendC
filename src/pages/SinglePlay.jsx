@@ -247,6 +247,22 @@ const PlayPage = () => {
   const [playKeywordCorrect] = useSound('/sounds/goodresult.mp3');
   const [playKeywordWrong] = useSound('/sounds/buzzer2.mp3');
 
+  // Thêm state volume sau các state hiện có
+  const [volume, setVolume] = useState(1);
+
+  // Thêm hàm playSound và toggleVolume
+  const playSound = (soundFunction) => {
+    try {
+      soundFunction({ volume });
+    } catch (error) {
+      console.log('Lỗi phát âm thanh:', error);
+    }
+  };
+
+  const toggleVolume = () => {
+    setVolume(prev => prev === 0 ? 1 : 0);
+  };
+
   // Hàm xử lý submit từ khóa
   const handleKeywordSubmit = async () => {
     try {
@@ -267,7 +283,7 @@ const PlayPage = () => {
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
 
         if (userKeyword === correctKeyword) {
-          playKeywordCorrect(); // Tiếng goodresult khi từ khóa đúng
+          playSound(playKeywordCorrect); // Thay thế playKeywordCorrect()
           toast.success(' Từ khóa chính xác!', {
             position: "top-center",
             autoClose: 2000,
@@ -285,7 +301,7 @@ const PlayPage = () => {
             displayKeywordOnGrid(userKeyword);
           }, 1000);
         } else {
-          playKeywordWrong();
+          playSound(playKeywordWrong); // Thay thế playKeywordWrong()
           toast.error(' Từ khóa không chính xác!', {
             position: "top-center",
             autoClose: 2000,
@@ -395,7 +411,7 @@ const PlayPage = () => {
       const isCorrect = currentAnswer === correctAnswer;
 
       if (isCorrect) {
-        playCorrect(); // Tiếng hò hét + vỗ tay khi trả lời đúng
+        playSound(playCorrect); // Thay thế playCorrect()
         toast.success(' Chính xác!', {
           position: "top-center",
           autoClose: 2000,
@@ -420,7 +436,7 @@ const PlayPage = () => {
         }, 1000); // Đợi 1 giây sau khi toast hiện lên
 
       } else {
-        playWrong(); // Tiếng fail jingle khi trả lời sai
+        playSound(playWrong); // Thay thế playWrong()
         toast.error(` Sai rồi! Bạn còn ${1 - (submitCounts[selectedButton] || 0)} lần thử`, {
           position: "top-center",
           autoClose: 2000,
@@ -559,6 +575,23 @@ const PlayPage = () => {
     }
   };
 
+  // Thêm styled component cho nút âm lượng
+  const SoundButton = styled.button`
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  `;
+
   return (
     <PlayPageContainer>
       <ToastStyle />
@@ -579,6 +612,9 @@ const PlayPage = () => {
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
         <PuzzleName>{puzzleTitle}</PuzzleName>
         <ButtonGroup>
+          <SoundButton onClick={toggleVolume}>
+            {volume === 0 ? '🔇' : '🔊'}
+          </SoundButton>
           <ViewAnswersButton
             onClick={handleViewAnswers}
             disabled={!isKeywordCorrect}
@@ -762,7 +798,6 @@ const PlayPage = () => {
 };
 
 export default PlayPage;
-
 // Styled-components
 
 const FormHeader = styled.div`
@@ -1112,3 +1147,4 @@ const ButtonGroup = styled.div`
   gap: 10px;
   margin-top: 10px;
 `;
+
