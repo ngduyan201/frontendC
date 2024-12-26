@@ -51,10 +51,16 @@ function LoginForm() {
         setTimeout(() => {
           navigate('/homepage');
         }, 1500);
+      } else {
+        setErrorMessage(response.message || 'Đăng nhập thất bại');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrorMessage(error.response?.data?.message || 'Đăng nhập thất bại');
+      if (error.response?.status === 401) {
+        setErrorMessage('Tài khoản hoặc mật khẩu không chính xác');
+      } else {
+        setErrorMessage(error.response?.data?.message || 'Đăng nhập thất bại');
+      }
     } finally {
       setIsLoading(false);
     }
