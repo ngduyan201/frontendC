@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.API_BASE_URL ;
+
+const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
 
 export const API_URLS = {
   AUTH: {
