@@ -1,8 +1,8 @@
 import axios from 'axios';
-
+import { API_BASE_URL } from '@/config/apiConfig';
 export const createApiInstance = () => {
   const instance = axios.create({
-    baseURL: 'http://localhost:5001/api',
+    baseURL: API_BASE_URL || 'http://localhost:5001/api',
     withCredentials: true,
     timeout: 10000,
     headers: {
