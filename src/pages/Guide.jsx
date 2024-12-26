@@ -150,7 +150,141 @@ const GuidePage = () => {
             </Section>
           </GuideContent>
         ) : (
-          <div>Nội dung hướng dẫn chơi</div>
+          <GuideContent>
+            <WelcomeText>
+              Xin chào! Dưới đây là hướng dẫn chi tiết cách chơi trò chơi ô chữ trên hệ thống. Tất cả các ô chữ ở trạng thái Công khai sẽ được hiển thị tại Thư viện, nơi bạn có thể lựa chọn và tham gia chơi theo bất kỳ chế độ nào. Trong mọi chế độ, hệ thống không tính thời gian, giúp bạn thoải mái suy nghĩ và đưa ra đáp án hợp lý nhất.
+            </WelcomeText>
+
+            <Divider />
+
+            <Section>
+              <SectionTitle>1. Chế độ Chơi một mình</SectionTitle>
+              <Paragraph>
+                • Đây là chế độ lý tưởng để bạn khám phá kiến thức thông qua các ô chữ.
+              </Paragraph>
+              <Paragraph>
+                • Chọn chế độ Chơi một mình và nhấn Bắt đầu chơi để khởi động.
+              </Paragraph>
+              
+              <SubSection>
+                <SubSectionTitle>Cách chơi:</SubSectionTitle>
+                <Paragraph>
+                  • Chọn câu hỏi: Nhấn vào các nút bên trái để chọn câu hỏi. Lưu ý, bạn phải hoàn thành câu hỏi hiện tại trước khi chọn câu khác.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P1.jpg" alt="Chọn câu hỏi" />
+                </ImageContainer>
+                
+                <Paragraph>
+                  • Lượt trả lời: Bạn có tối đa 2 lượt trả lời cho mỗi câu hỏi. Nếu trả lời sai lần thứ 2, hàng ngang đó sẽ bị khóa. Nội dung hàng ngang có thể được mở sau khi bạn giải được từ khóa chính.
+                </Paragraph>
+                <Paragraph>
+                  • Bỏ qua: Nếu không có đáp án, bạn có thể nhấn Bỏ qua.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P2.jpg" alt="Bỏ qua câu hỏi" />
+                </ImageContainer>
+                
+                <Paragraph>
+                  • Trả lời từ khóa: Bạn có thể thử trả lời từ khóa chính bất kỳ lúc nào. Không giới hạn số lần thử.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P3.jpg" alt="Trả lời từ khóa" />
+                </ImageContainer>
+                
+                <Paragraph>
+                  • Chơi lại: Bạn có thể nhấn nút Chơi lại từ đầu để bắt đầu lại thay vì thoát ra và vào lại.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P4.jpg" alt="Chơi lại" />
+                </ImageContainer>
+              </SubSection>
+            </Section>
+
+            <Section>
+              <SectionTitle>2. Chế độ Chơi theo đội</SectionTitle>
+              <Paragraph>
+                • Chế độ này cho phép bạn tổ chức trò chơi cho nhiều người tham gia, kể cả khi bạn không biết đáp án của ô chữ.
+              </Paragraph>
+
+              <SubSection>
+                <SubSectionTitle>Bắt đầu:</SubSectionTitle>
+                <Paragraph>
+                  • Chọn chế độ Chơi theo đội và đặt tên cho các đội để kích hoạt. Nếu không đặt tên, đội sẽ bị ẩn. Cần ít nhất 2 đội để bắt đầu.
+                </Paragraph>
+                <Paragraph>
+                  • Hệ thống hỗ trợ âm thanh. Bạn có thể bật hoặc tắt tùy ý.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P5.jpg" alt="Thiết lập đội" />
+                </ImageContainer>
+              </SubSection>
+
+              <SubSection>
+                <SubSectionTitle>Luật chơi:</SubSectionTitle>
+                <Paragraph>Câu hỏi thường:</Paragraph>
+                <Paragraph>
+                  • Nhấn vào bảng đội để xác định lượt chơi. Điểm sẽ được cộng hoặc trừ cho đội đang được chọn.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P7.jpg" alt="Chọn đội" />
+                </ImageContainer>
+                
+                <Paragraph>• Điểm thưởng:</Paragraph>
+                <SubList>
+                  <ListItem>Trả lời đúng lần đầu: +10 điểm</ListItem>
+                  <ListItem>Trả lời sai lần đầu: Không bị trừ điểm, quyền trả lời chuyển cho đội khác.</ListItem>
+                </SubList>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P8.jpg" alt="Điểm thưởng" />
+                </ImageContainer>
+
+                <Paragraph>• Đội khác nếu được chọn trả lời (lần thứ 2):</Paragraph>
+                <SubList>
+                  <ListItem>Trả lời đúng: +5 điểm</ListItem>
+                  <ListItem>Trả lời sai: -5 điểm</ListItem>
+                  <ListItem>Nếu không có đáp án: Nhấn Bỏ qua.</ListItem>
+                </SubList>
+                <Paragraph>
+                  • Sau 2 lần trả lời sai, câu hỏi sẽ bị khóa.
+                </Paragraph>
+
+                <Paragraph>Từ khóa:</Paragraph>
+                <Paragraph>
+                  • Mỗi đội chỉ được trả lời từ khóa 1 lần duy nhất.
+                </Paragraph>
+                <Paragraph>• Điểm thưởng:</Paragraph>
+                <SubList>
+                  <ListItem>Công thức: 5 × (số ký tự từ khóa) - 5 × (số ký tự đã hiện).</ListItem>
+                </SubList>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P10.jpg" alt="Điểm từ khóa" />
+                </ImageContainer>
+                
+                <Paragraph>
+                  • Nếu trả lời sai: Không bị trừ điểm.
+                </Paragraph>
+                <Paragraph>
+                  • Người tổ chức có thể chọn hình phạt cho đội trả lời sai từ khóa, bao gồm:
+                </Paragraph>
+                <SubList>
+                  <ListItem>Không được trả lời từ khóa nữa.</ListItem>
+                  <ListItem>Không được chọn câu hỏi nữa.</ListItem>
+                  <ListItem>Có hoặc không có quyền giành lượt khi đội khác trả lời sai.</ListItem>
+                </SubList>
+              </SubSection>
+
+              <SubSection>
+                <SubSectionTitle>Kết thúc trò chơi:</SubSectionTitle>
+                <Paragraph>
+                  • Bạn có thể kết thúc bất kỳ lúc nào bằng cách nhấn Tổng kết điểm ở góc phải màn hình. Hệ thống sẽ thông báo đội chiến thắng.
+                </Paragraph>
+                <ImageContainer>
+                  <GuideImage src="/images/guide/P11.jpg" alt="Kết thúc trò chơi" />
+                </ImageContainer>
+              </SubSection>
+            </Section>
+          </GuideContent>
         )}
       </ContentContainer>
     </GuideContainer>
@@ -258,4 +392,15 @@ const GuideImage = styled.img`
   max-width: 100%;
   border-radius: 16px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+`;
+
+const SubSection = styled.div`
+  margin: 30px 0 50px 0;
+`;
+
+const SubSectionTitle = styled.h3`
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-weight: 500;
 `;

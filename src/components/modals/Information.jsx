@@ -31,6 +31,8 @@ const Modal = ({ isOpen, onClose, data }) => {
         } else {
           toast.error(response.message || 'Không thể bắt đầu trò chơi');
         }
+      } else if (gameMode === 'code') {
+        navigate('/code');
       }
       onClose();
     } catch (error) {
