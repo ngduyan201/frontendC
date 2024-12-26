@@ -23,10 +23,31 @@ const Homepage = () => {
 
   return (
     <MainContent>
-      {/* Trang 1 */}
-      <Section>
-        <Placeholder>Video minh họa hoặc nội dung chính của trang</Placeholder>
-      </Section>
+      {/* Trang 1 - Hero Section */}
+      <HeroSection>
+        <LeftColumn>
+          <WelcomeText>
+            <Title>Chào mừng bạn đến với Trò chơi Ô chữ!</Title>
+            <Description>
+              Nơi học tập trở nên thú vị và đầy hứng khởi! Khám phá kho tàng kiến thức qua những ô chữ độc đáo, thử thách trí tuệ của bạn với các câu đố hấp dẫn.
+            </Description>
+            <Features>
+              <Feature> Trải nghiệm học tập tương tác</Feature>
+              <Feature> Rèn luyện tư duy logic</Feature>
+              <Feature> Mở rộng vốn kiến thức</Feature>
+              <Feature> Thi đấu vui vẻ cùng bạn bè</Feature>
+            </Features>
+            <CallToAction>
+              Bắt đầu hành trình khám phá ngay hôm nay!
+            </CallToAction>
+          </WelcomeText>
+        </LeftColumn>
+        <RightColumn>
+          <VideoPlaceholder>
+            Video minh họa sẽ được thêm vào đây
+          </VideoPlaceholder>
+        </RightColumn>
+      </HeroSection>
 
       {/* Trang 2 */}
       <SecondSection>
@@ -65,17 +86,88 @@ const MainContent = styled.main`
   padding: 20px;
 `;
 
-const Section = styled.section`
-  height: 400px;
+const HeroSection = styled.section`
   display: flex;
-  justify-content: center;
-  align-items: center;
+  min-height: 600px;
+  padding: 40px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
 `;
 
-const Placeholder = styled.div`
-  font-size: 1.5rem;
-  color: #666;
+const LeftColumn = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding-right: 40px;
+`;
+
+const RightColumn = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const WelcomeText = styled.div`
+  max-width: 600px;
+`;
+
+const Title = styled.h1`
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+`;
+
+const Description = styled.p`
+  font-size: 1.2rem;
+  color: #34495e;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+`;
+
+const Features = styled.div`
+  margin: 2rem 0;
+`;
+
+const Feature = styled.div`
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin: 0.8rem 0;
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    margin-right: 12px;
+  }
+`;
+
+const CallToAction = styled.div`
+  font-size: 1.3rem;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-top: 2rem;
+  padding: 1rem 0;
   text-align: center;
+  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+`;
+
+const VideoPlaceholder = styled.div`
+  width: 100%;
+  height: 400px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.2rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 `;
 
 const SecondSection = styled.div`
