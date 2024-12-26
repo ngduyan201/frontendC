@@ -105,7 +105,23 @@ const Layout = () => {
       <Footer>
         <p>Thông tin liên hệ:</p>
         <p>Email: ngduyan201@gmail.com | Điện thoại: 0369 012 012</p>
-        <p>Sound Effect by <a href="https://pixabay.com/vi/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995">freesound_community</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995">Pixabay</a></p>
+        <p></p>
+          Sound Effect by{' '}
+          <a 
+            href="https://pixabay.com/vi/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            freesound_community
+          </a>
+          {' '}from{' '}
+          <a 
+            href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pixabay
+          </a>
         <p>&copy; 2024 Trò Chơi Ô Chữ. All Rights Reserved.</p>
       </Footer>
 

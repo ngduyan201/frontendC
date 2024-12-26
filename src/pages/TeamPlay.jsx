@@ -7,6 +7,7 @@ import CryptoJS from 'crypto-js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useSound from 'use-sound';
+import Victory from '../components/features/Victory';
 
 // Thêm GlobalStyle để tùy chỉnh toast
 const ToastStyle = createGlobalStyle`
@@ -204,23 +205,44 @@ const TeamPlay = () => {
   // Thêm hàm kiểm tra số lượng đội đã sẵn sàng
   const getReadyTeamsCount = () => editedTeams.size;
 
+  // Thêm state mới
+  const [gameState, setGameState] = useState('initial'); // 'initial', 'playing', 'ended'
+  const [showVictory, setShowVictory] = useState(false);
+
+  // Thêm state để lưu tên đội chiến thắng
+  const [winningTeam, setWinningTeam] = useState('');
+
   // Cập nhật hàm handleReset
   const handleReset = () => {
-    if (!isGameStarted) {
+    if (gameState === 'initial') {
       // Kiểm tra số lượng đội
       if (getReadyTeamsCount() < 2) {
         toast.error('Cần ít nhất 2 đội để bắt đầu trò chơi!', {
           position: "top-center",
           autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: false,
         });
         return;
       }
+      setGameState('playing');
       setIsGameStarted(true);
-    } else {
+    } 
+    else if (gameState === 'playing') {
+      // Tìm đội có điểm cao nhất từ mảng teams
+      let maxScore = -Infinity;
+      let winner = '';
+      
+      teams.forEach((team) => {
+        if (team.score > maxScore && team.name.trim() !== '') {
+          maxScore = team.score;
+          winner = team.name;
+        }
+      });
+      
+      setWinningTeam(winner); // Lưu tên đội chiến thắng vào state
+      setShowVictory(true);
+      setGameState('ended');
+    }
+    else if (gameState === 'ended') {
       setShowResetModal(true);
     }
   };
@@ -238,12 +260,20 @@ const TeamPlay = () => {
     setIsGameStarted(false);
     setLetters(Array(numberOfQuestions).fill(null).map(() => Array(17).fill('')));
     setQuestionData('');
-    setSubmitCounts({}); // Reset số lần submit
-    setAnswers({}); // Reset các đáp án đã nhập
-    setShowRedBorder(false); // Tắt hiệu ứng border đỏ nếu đang hiển thị
-    setDisabledTeams(new Set()); // Reset danh sách đội bị cấm
-    setKeywordAttempts(new Set()); // Reset danh sách đội đã thử trả lời từ khóa
-    setIsKeywordCorrect(false); // Reset trạng thái từ khóa đúng
+    setSubmitCounts({});
+    setAnswers({});
+    setShowRedBorder(false);
+    setDisabledTeams(new Set());
+    setKeywordAttempts(new Set());
+    setIsKeywordCorrect(false);
+    setGameState('initial');
+    setWinningTeam('');
+    
+    // Reset điểm của tất cả các đội
+    setTeams(teams.map(team => ({
+      ...team,
+      score: 0  // Reset điểm về 0
+    })));
   };
 
   // Thêm handler cho từ khóa
@@ -698,7 +728,8 @@ const TeamPlay = () => {
             onClick={handleReset}
             $canStart={!isGameStarted ? getReadyTeamsCount() >= 2 : true}
           >
-            {isGameStarted ? 'Chơi lại từ đầu' : 'Bắt đầu chơi'}
+            {gameState === 'initial' ? 'Bắt đầu chơi' : 
+             gameState === 'playing' ? 'Kết thúc' : 'Chơi lại'}
           </StartButton>
           <SoundButton onClick={() => setIsMuted(!isMuted)}>
             {isMuted ? '🔇' : '🔊'}
@@ -916,6 +947,13 @@ const TeamPlay = () => {
           </KeywordForm>
         </RightPanel>
       </MainContent>
+
+      {showVictory && (
+        <Victory 
+          teamName={winningTeam} 
+          onClose={() => setShowVictory(false)}
+        />
+      )}
     </PlayPageContainer>
   );
 };
