@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/styled-components": "^5.1.34",
     "axios": "^1.7.9",
+    "canvas-confetti": "^1.9.3",
     "cookie-parser": "^1.4.6",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.4.7",
