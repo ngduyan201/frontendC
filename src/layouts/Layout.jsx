@@ -104,8 +104,7 @@ const Layout = () => {
       {/* Footer */}
       <Footer>
         <p>Thông tin liên hệ:</p>
-        <p>Email: ngduyan201@gmail.com | Điện thoại: 0369 012 012</p>
-        <p></p>
+        <p>Email: ngduyan201@gmail.com </p>
           Sound Effect by{' '}
           <a 
             href="https://pixabay.com/vi/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995"
