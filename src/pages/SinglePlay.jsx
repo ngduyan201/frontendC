@@ -198,9 +198,10 @@ const PlayPage = () => {
     setIsGameStarted(false);
     setLetters(Array(numberOfQuestions).fill(null).map(() => Array(17).fill('')));
     setQuestionData('');
-    setSubmitCounts({}); // Reset số lần submit
-    setAnswers({}); // Reset các đáp án đã nhập
-    setShowRedBorder(false); // Tắt hiệu ứng border đỏ nếu đang hiển thị
+    setSubmitCounts({});
+    setAnswers({});
+    setShowRedBorder(false);
+    setIsViewingAnswers(false);
   };
 
   // Thêm handler cho từ khóa
@@ -311,22 +312,27 @@ const PlayPage = () => {
 
   // Thêm hàm xử lý khi click button
   const handleButtonClick = (index) => {
-    if (!isGameStarted) return;
+    if (!isGameStarted && !isViewingAnswers) return;
     
-    // Kiểm tra nếu câu hỏi đã được trả lời đúng
+    // Cho phép di chuyển tự do khi đang xem đáp án
+    if (isViewingAnswers) {
+      setSelectedButton(index);
+      setQuestionData(questions[index]?.questionContent || '');
+      return;
+    }
+
+    // Logic hiện tại cho chế độ chơi
     if (answers[index]) {
       console.log('Câu hỏi này đã được trả lời đúng!');
       return;
     }
     
-    // Kiểm tra nếu đã trả lời sai 2 lần
     if (hasReachedMaxAttempts(index)) {
       console.log('Câu hỏi này đã hết lượt trả lời!');
       return;
     }
     
     if (isAnswering) {
-      // Nếu đang trả lời, hiện khung đỏ
       setShowRedBorder(true);
       setTimeout(() => {
         setShowRedBorder(false);
@@ -509,6 +515,50 @@ const PlayPage = () => {
     }
   }, [answers, submitCounts]); // Chạy khi answers hoặc submitCounts thay đổi
 
+  // Thêm styled component cho nút Xem đáp án
+  const ViewAnswersButton = styled.button`
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 6px;
+    background-color: ${props => props.disabled ? '#cccccc' : '#4CAF50'};
+    color: white;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+    margin-right: 10px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: ${props => props.disabled ? '#cccccc' : '#45a049'};
+    }
+  `;
+
+  // Thêm state để kiểm soát việc hiển thị đáp án
+  const [isViewingAnswers, setIsViewingAnswers] = useState(false);
+
+  // Thêm hàm xử lý hiển thị đáp án
+  const handleViewAnswers = async () => {
+    try {
+      const key = secretKeyManager.getKey();
+      if (!key) return;
+
+      // Hiển thị tất cả đáp án
+      for (let i = 0; i < questions.length; i++) {
+        const encryptedAnswer = questions[i].answer;
+        const bytes = CryptoJS.AES.decrypt(encryptedAnswer, key);
+        const answer = bytes.toString(CryptoJS.enc.Utf8);
+        displayAnswerOnGrid(i, answer, questions[i].columnPosition);
+      }
+
+      setIsViewingAnswers(true);
+      setIsAnswering(false);
+      setAnswer('');
+
+    } catch (error) {
+      console.error('Error showing answers:', error);
+      toast.error('Có lỗi xảy ra khi hiển thị đáp án');
+    }
+  };
+
   return (
     <PlayPageContainer>
       <ToastStyle />
@@ -528,9 +578,17 @@ const PlayPage = () => {
       <Banner>
         <BackButton onClick={handleGoBack}>Quay lại</BackButton>
         <PuzzleName>{puzzleTitle}</PuzzleName>
-        <StartButton onClick={handleReset}>
-          {isGameStarted ? 'Chơi lại từ đầu' : 'Bắt đầu chơi'}
-        </StartButton>
+        <ButtonGroup>
+          <ViewAnswersButton
+            onClick={handleViewAnswers}
+            disabled={!isKeywordCorrect}
+          >
+            Xem đáp án
+          </ViewAnswersButton>
+          <StartButton onClick={handleReset}>
+            {isGameStarted ? 'Chơi lại từ đầu' : 'Bắt đầu chơi'}
+          </StartButton>
+        </ButtonGroup>
       </Banner>
 
       <ResetModal 
@@ -613,29 +671,28 @@ const PlayPage = () => {
             <FormHeader>
               <FormTitle>Nhập đáp án</FormTitle>
               <ButtonGroup>
+                <SkipButton 
+                  onClick={handleSkipQuestion}
+                  disabled={
+                    !isGameStarted || 
+                    selectedButton === null || 
+                    skippedQuestions[selectedButton]
+                  }
+                >
+                  Bỏ qua
+                </SkipButton>
                 <SubmitButton 
                   onClick={handleAnswerSubmit}
                   disabled={
                     !isGameStarted || 
                     selectedButton === null || 
                     checkSubmitLimit(selectedButton) ||
-                    !checkAnswerLength()
+                    !checkAnswerLength() ||
+                    isViewingAnswers
                   }
                 >
                   Xác nhận
                 </SubmitButton>
-                {isAnswering && ( // Chỉ hiện nút bỏ qua khi đang trả lời
-                  <SkipButton 
-                    onClick={handleSkipQuestion}
-                    disabled={
-                      !isGameStarted || 
-                      selectedButton === null || 
-                      skippedQuestions[selectedButton]
-                    }
-                  >
-                    Bỏ qua
-                  </SkipButton>
-                )}
               </ButtonGroup>
             </FormHeader>
             <AnswerInputBox 
@@ -647,7 +704,8 @@ const PlayPage = () => {
                     isGameStarted && 
                     selectedButton !== null && 
                     !checkSubmitLimit(selectedButton) && 
-                    checkAnswerLength()) {
+                    checkAnswerLength() &&
+                    !isViewingAnswers) {
                   handleAnswerSubmit();
                 }
               }}
@@ -660,7 +718,7 @@ const PlayPage = () => {
                       ? "Bạn đã hết lượt trả lời"
                       : `Nhập đáp án ${answer.length}/${questions[selectedButton]?.numberOfCharacters || 0} ký tự...`
               }
-              disabled={!isGameStarted || selectedButton === null || checkSubmitLimit(selectedButton)}
+              disabled={!isGameStarted || selectedButton === null || checkSubmitLimit(selectedButton) || isViewingAnswers}
               $showRedBorder={showRedBorder}
             />
           </AnswerForm>

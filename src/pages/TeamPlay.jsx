@@ -213,9 +213,9 @@ const TeamPlay = () => {
   const [winningTeam, setWinningTeam] = useState('');
 
   // Cập nhật hàm handleReset
-  const handleReset = () => {
+  const handleReset = async () => {
     if (gameState === 'initial') {
-      // Kiểm tra số lượng đội
+      // Bắt đầu chơi
       if (getReadyTeamsCount() < 2) {
         toast.error('Cần ít nhất 2 đội để bắt đầu trò chơi!', {
           position: "top-center",
@@ -227,7 +227,7 @@ const TeamPlay = () => {
       setIsGameStarted(true);
     } 
     else if (gameState === 'playing') {
-      // Tìm đội có điểm cao nhất từ mảng teams
+      // Kết thúc và hiển thị victory
       let maxScore = -Infinity;
       let winner = '';
       
@@ -238,11 +238,39 @@ const TeamPlay = () => {
         }
       });
       
-      setWinningTeam(winner); // Lưu tên đội chiến thắng vào state
+      setWinningTeam(winner);
       setShowVictory(true);
       setGameState('ended');
     }
     else if (gameState === 'ended') {
+      // Xem đáp án
+      try {
+        const key = secretKeyManager.getKey();
+        const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
+        const encryptedKeyword = playData.data.mainKeyword[0].keyword;
+        const bytes = CryptoJS.AES.decrypt(encryptedKeyword, key);
+        const mainKeyword = bytes.toString(CryptoJS.enc.Utf8);
+        
+        // Hiển thị từ khóa
+        displayKeywordOnGrid(mainKeyword);
+        
+        // Giải mã và hiển thị tất cả đáp án
+        for (let i = 0; i < questions.length; i++) {
+          const encryptedAnswer = questions[i].answer;
+          const bytes = CryptoJS.AES.decrypt(encryptedAnswer, key);
+          const answer = bytes.toString(CryptoJS.enc.Utf8);
+          displayAnswerOnGrid(i, answer, questions[i].columnPosition);
+        }
+        
+        setGameState('showing');
+        
+      } catch (error) {
+        console.error('Error showing answers:', error);
+        toast.error('Có lỗi xảy ra khi hiển thị đáp án');
+      }
+    }
+    else if (gameState === 'showing') {
+      // Reset game
       setShowResetModal(true);
     }
   };
@@ -423,20 +451,17 @@ const TeamPlay = () => {
   const handleButtonClick = (index) => {
     if (!isGameStarted) return;
     
-    // Kiểm tra nếu câu hỏi đã được trả lời đúng
     if (answers[index]) {
       console.log('Câu hỏi này đã được trả lời đúng!');
       return;
     }
     
-    // Kiểm tra nếu đã trả lời sai 2 lần
     if (hasReachedMaxAttempts(index)) {
       console.log('Câu hỏi này đã hết lượt trả lời!');
       return;
     }
     
     if (isAnswering) {
-      // Nếu đang trả lời, hiện khung đỏ
       setShowRedBorder(true);
       setTimeout(() => {
         setShowRedBorder(false);
@@ -704,6 +729,62 @@ const TeamPlay = () => {
     }
   };
 
+  const SkipButton = styled(SubmitButton)`
+    background-color: ${props => props.disabled ? '#ccc' : '#ff6b6b'};
+    margin-right: 10px;
+
+    &:hover {
+      background-color: ${props => props.disabled ? '#ccc' : '#ff5252'};
+    }
+  `;
+
+  const handleSkip = () => {
+    playSound(playWrong);
+    
+    // Kiểm tra số lần submit hiện tại
+    const currentAttempts = submitCounts[selectedButton] || 0;
+    
+    // Tăng số lần submit và kiểm tra giới hạn
+    setSubmitCounts(prev => {
+      const newCount = (prev[selectedButton] || 0) + 1;
+      if (newCount >= 2) {
+        setIsAnswering(false);
+      }
+      return {
+        ...prev,
+        [selectedButton]: newCount
+      };
+    });
+    
+    setShowRedBorder(true);
+    setTimeout(() => {
+      setShowRedBorder(false);
+    }, 3000);
+
+    // Trừ điểm nếu không phải lần đầu trả lời
+    if (currentAttempts > 0) {
+      handleTeamScoreChange(activeTeam, -5);
+    }
+
+    // Reset answer
+    setAnswer('');
+
+    // Thông báo khác nhau cho mỗi lần bỏ qua
+    const message = currentAttempts === 0
+      ? ' Bỏ qua! Mời các đội còn lại.'
+      : ' Không có đội nào biết đáp án câu này.';
+
+    toast.error(message, {
+      position: "top-center",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: false,
+      progress: undefined,
+    });
+  };
+
   return (
     <PlayPageContainer>
       <ToastStyle />
@@ -726,10 +807,18 @@ const TeamPlay = () => {
         <ButtonGroup>
           <StartButton 
             onClick={handleReset}
+            mode={
+              gameState === 'initial' ? 'start' :
+              gameState === 'playing' ? 'end' :
+              gameState === 'ended' ? 'show' :
+              'reset'
+            }
             $canStart={!isGameStarted ? getReadyTeamsCount() >= 2 : true}
           >
-            {gameState === 'initial' ? 'Bắt đầu chơi' : 
-             gameState === 'playing' ? 'Kết thúc' : 'Chơi lại'}
+            {gameState === 'initial' ? 'Bắt đầu chơi' :
+             gameState === 'playing' ? 'Kết thúc' :
+             gameState === 'ended' ? 'Xem đáp án' :
+             'Chơi lại'}
           </StartButton>
           <SoundButton onClick={() => setIsMuted(!isMuted)}>
             {isMuted ? '🔇' : '🔊'}
@@ -883,17 +972,29 @@ const TeamPlay = () => {
           <AnswerForm>
             <FormHeader>
               <FormTitle>Nhập đáp án</FormTitle>
-              <SubmitButton 
-                onClick={handleAnswerSubmit}
-                disabled={
-                  !isGameStarted || 
-                  selectedButton === null || 
-                  checkSubmitLimit(selectedButton) ||
-                  !checkAnswerLength() // Thêm điều kiện kiểm tra độ dài
-                }
-              >
-                Xác nhận
-              </SubmitButton>
+              <div>
+                <SkipButton 
+                  onClick={handleSkip}
+                  disabled={
+                    !isGameStarted || 
+                    selectedButton === null || 
+                    checkSubmitLimit(selectedButton)
+                  }
+                >
+                  Bỏ qua
+                </SkipButton>
+                <SubmitButton 
+                  onClick={handleAnswerSubmit}
+                  disabled={
+                    !isGameStarted || 
+                    selectedButton === null || 
+                    checkSubmitLimit(selectedButton) ||
+                    !checkAnswerLength()
+                  }
+                >
+                  Xác nhận
+                </SubmitButton>
+              </div>
             </FormHeader>
             <AnswerInputBox 
               type="text" 
@@ -1037,7 +1138,15 @@ const StartButton = styled.button`
   font-weight: bold;
   border-radius: 8px;
   cursor: ${props => props.$canStart ? 'pointer' : 'not-allowed'};
-  background: ${props => props.$canStart ? '#4CAF50' : '#cccccc'};
+  background-color: ${props => {
+    switch (props.mode) {
+      case 'start': return '#2196F3';    // Xanh dương - Bắt đầu chơi
+      case 'end': return '#FF5722';      // Cam - Kết thúc
+      case 'show': return '#4CAF50';     // Xanh lá - Xem đáp án
+      case 'reset': return '#9C27B0';    // Tím - Chơi lại
+      default: return '#2196F3';
+    }
+  }};
   color: white;
   border: none;
   transition: all 0.3s ease;
