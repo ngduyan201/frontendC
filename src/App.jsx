@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './layouts/Layout';
 import FirstPage from './pages/FirstPage';
 import Homepage from './pages/Homepage';
-import SinglePlay from './pages/SinglePlay';
-import CreatePage from './pages/CreatePage';
+import Library from './pages/Library';
+import GuidePage from './pages/Guide';
+import CodeEnter from './pages/CodeEnter';
+import AccountPage from './pages/AccountPage';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 import PublicRoute from './components/routes/PublicRoute';
@@ -12,13 +14,11 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RequireCrosswordSession from './components/hoc/RequireCrosswordSession';
 
-// Lazy load các trang không cần thiết ngay lập tức
-const Library = lazy(() => import('./pages/Library'));
-const GuidePage = lazy(() => import('./pages/Guide'));
-const CodeEnter = lazy(() => import('./pages/CodeEnter'));
-const CodePlay = lazy(() => import('./pages/CodePlay'));
+// Lazy load cho các trang phức tạp
+const CreatePage = lazy(() => import('./pages/CreatePage'));
+const SinglePlay = lazy(() => import('./pages/SinglePlay'));
 const TeamPlay = lazy(() => import('./pages/TeamPlay'));
-const AccountPage = lazy(() => import('./pages/AccountPage'));
+const CodePlay = lazy(() => import('./pages/CodePlay'));
 
 // Loading component đơn giản
 const LoadingFallback = () => <div className="w-full h-screen flex items-center justify-center">Loading...</div>;
@@ -28,53 +28,59 @@ function App() {
     <AuthProvider>
       <Router>
         <ToastContainer />
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public route - Trang đăng nhập */}
-            <Route path="/" element={
-              <PublicRoute>
-                <FirstPage />
-              </PublicRoute>
-            } />
-            
-            {/* Protected routes */}
-            <Route path="play" element={
-              <ProtectedRoute>
+        <Routes>
+          {/* Public route - Trang đăng nhập */}
+          <Route path="/" element={
+            <PublicRoute>
+              <FirstPage />
+            </PublicRoute>
+          } />
+          
+          {/* Protected routes với lazy loading */}
+          <Route path="play" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingFallback />}>
                 <SinglePlay />
-              </ProtectedRoute>
-            } />
-            <Route path="team-play" element={
-              <ProtectedRoute>
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="team-play" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingFallback />}>
                 <TeamPlay />
-              </ProtectedRoute>
-            } />
-            <Route path="code-play" element={
-              <ProtectedRoute>
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="code-play" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingFallback />}>
                 <CodePlay />
-              </ProtectedRoute>
-            } />
-            <Route path="create" element={
-              <ProtectedRoute>
-                <RequireCrosswordSession>
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="create" element={
+            <ProtectedRoute>
+              <RequireCrosswordSession>
+                <Suspense fallback={<LoadingFallback />}>
                   <CreatePage />
-                </RequireCrosswordSession>
-              </ProtectedRoute>
-            } />
-            
-            {/* Các trang sử dụng Layout - đều là protected */}
-            <Route element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }>
-              <Route path="homepage" element={<Homepage />} />
-              <Route path="library" element={<Library />} />
-              <Route path="guide" element={<GuidePage />} />
-              <Route path="code" element={<CodeEnter />} />
-              <Route path="account" element={<AccountPage />} />
-            </Route>
-          </Routes>
-        </Suspense>
+                </Suspense>
+              </RequireCrosswordSession>
+            </ProtectedRoute>
+          } />
+          
+          {/* Các trang cơ bản sử dụng Layout - không lazy load */}
+          <Route element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route path="homepage" element={<Homepage />} />
+            <Route path="library" element={<Library />} />
+            <Route path="guide" element={<GuidePage />} />
+            <Route path="code" element={<CodeEnter />} />
+            <Route path="account" element={<AccountPage />} />
+          </Route>
+        </Routes>
       </Router>
     </AuthProvider>
   );

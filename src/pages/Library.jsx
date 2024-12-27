@@ -182,165 +182,165 @@ const Library = () => {
 
   return (
     <Container>
-      <SearchContainer>
-        <SearchGroup>
-          <SearchLabel>Nhập nội dung bạn muốn khám phá ở đây:</SearchLabel>
-          <SearchInput 
-            type="text" 
-            placeholder="Hãy nhập gì đó..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-          />
-          <SearchButton onClick={handleSearch}>
-            Tìm kiếm
-          </SearchButton>
-        </SearchGroup>
-        
-        <FiltersGroup>
-          <FilterSelect
-            value={filters.grade}
-            onChange={(e) => {
-              const newGrade = e.target.value;
-              setFilters(prev => ({
-                ...prev,
-                grade: newGrade,
-                subject: ''
-              }));
-            }}
-          >
-            <option value="">Tất cả các lớp</option>
-            {grades.map(grade => (
-              <option key={grade} value={grade}>{grade}</option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect 
-            value={filters.subject}
-            onChange={(e) => setFilters(prev => ({ ...prev, subject: e.target.value }))}
-            disabled={!filters.grade}
-          >
-            <option value="">Tất cả môn học</option>
-            {getSubjectsByGrade(filters.grade).map(subject => (
-              <option key={subject} value={subject}>{subject}</option>
-            ))}
-          </FilterSelect>
-        </FiltersGroup>
-      </SearchContainer>
-
-      {isSearching ? (
-        <SearchResultsContainer>
-          <SearchHeader>
-            <BackButton onClick={handleBackToDefault}>
-              <i className="fas fa-arrow-left" /> Quay lại
-            </BackButton>
-            <ResultsCount>
-              Tìm thấy {searchResults.length} kết quả
-            </ResultsCount>
-          </SearchHeader>
-
-          <ResultsGrid>
-            {searchResults
-              .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-              .map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  timesPlayed={crossword.timesPlayed || 0}
-                  author={crossword.author}
-                  grade={crossword.grade}
-                  onClick={() => handleCardClick(crossword)}
-                />
-            ))}
-          </ResultsGrid>
-
-          {totalPages > 1 && (
-            <Pagination>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PageButton
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  $isActive={currentPage === page}
-                >
-                  {page}
-                </PageButton>
-              ))}
-            </Pagination>
-          )}
-        </SearchResultsContainer>
+      {isLoading ? (
+        <LoadingSpinner>Đang tải thư viện ô chữ...</LoadingSpinner>
       ) : (
-        <LibraryContent>
-          <Section color="#f0f4f8">
-            <SectionTitle>Ô chữ mới nhất</SectionTitle>
-            <CardGrid>
-              {libraryCrosswords.newest.map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  timesPlayed={crossword.timesPlayed || 0}
-                  author={crossword.author}
-                  grade={crossword.grade}
-                  onClick={() => handleCardClick(crossword)}
-                />
-              ))}
-            </CardGrid>
-          </Section>
+        <>
+          <SearchContainer>
+            <SearchGroup>
+              <SearchLabel>Nhập nội dung bạn muốn khám phá ở đây:</SearchLabel>
+              <SearchInput 
+                type="text" 
+                placeholder="Hãy nhập gì đó..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+              />
+              <SearchButton onClick={handleSearch}>
+                Tìm kiếm
+              </SearchButton>
+            </SearchGroup>
+            
+            <FiltersGroup>
+              <FilterSelect
+                value={filters.grade}
+                onChange={(e) => {
+                  const newGrade = e.target.value;
+                  setFilters(prev => ({
+                    ...prev,
+                    grade: newGrade,
+                    subject: ''
+                  }));
+                }}
+              >
+                <option value="">Tất cả các lớp</option>
+                {grades.map(grade => (
+                  <option key={grade} value={grade}>{grade}</option>
+                ))}
+              </FilterSelect>
 
-          <Section color="#fff5f5">
-            <SectionTitle>Ô chữ phổ biến</SectionTitle>
-            <CardGrid>
-              {libraryCrosswords.mostPlayed.map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  timesPlayed={crossword.timesPlayed || 0}
-                  author={crossword.author}
-                  grade={crossword.grade}
-                  onClick={() => handleCardClick(crossword)}
-                />
-              ))}
-            </CardGrid>
-          </Section>
+              <FilterSelect 
+                value={filters.subject}
+                onChange={(e) => setFilters(prev => ({ ...prev, subject: e.target.value }))}
+                disabled={!filters.grade}
+              >
+                <option value="">Tất cả môn học</option>
+                {getSubjectsByGrade(filters.grade).map(subject => (
+                  <option key={subject} value={subject}>{subject}</option>
+                ))}
+              </FilterSelect>
+            </FiltersGroup>
+          </SearchContainer>
 
-          <Section color="#f0f8f1">
-            <SectionTitle>Ô chữ ngẫu nhiên</SectionTitle>
-            <CardGrid>
-              {libraryCrosswords.random.map((crossword) => (
-                <CrosswordCard 
-                  key={crossword._id}
-                  title={crossword.title}
-                  questionCount={crossword.questionCount}
-                  timesPlayed={crossword.timesPlayed || 0}
-                  author={crossword.author}
-                  grade={crossword.grade}
-                  onClick={() => handleCardClick(crossword)}
-                />
-              ))}
-            </CardGrid>
-          </Section>
-        </LibraryContent>
-      )}
+          {isSearching ? (
+            <SearchResultsContainer>
+              <SearchHeader>
+                <BackButton onClick={handleBackToDefault}>
+                  <i className="fas fa-arrow-left" /> Quay lại
+                </BackButton>
+                <ResultsCount>
+                  Tìm thấy {searchResults.length} kết quả
+                </ResultsCount>
+              </SearchHeader>
 
-      {/* Thêm Modal */}
-      {selectedCrossword && (
-        <InformationModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          data={selectedCrossword}
-        />
-      )}
+              <ResultsGrid>
+                {searchResults
+                  .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                  .map((crossword) => (
+                    <CrosswordCard 
+                      key={crossword._id}
+                      title={crossword.title}
+                      questionCount={crossword.questionCount}
+                      timesPlayed={crossword.timesPlayed || 0}
+                      author={crossword.author}
+                      grade={crossword.grade}
+                      onClick={() => handleCardClick(crossword)}
+                    />
+                  ))}
+              </ResultsGrid>
 
-      {isLoading && (
-        <LoadingOverlay>
-          <LoadingSpinner />
-        </LoadingOverlay>
+              {totalPages > 1 && (
+                <Pagination>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PageButton
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      $isActive={currentPage === page}
+                    >
+                      {page}
+                    </PageButton>
+                  ))}
+                </Pagination>
+              )}
+            </SearchResultsContainer>
+          ) : (
+            <LibraryContent>
+              <Section color="#f0f4f8">
+                <SectionTitle>Ô chữ mới nhất</SectionTitle>
+                <CardGrid>
+                  {libraryCrosswords.newest.map((crossword) => (
+                    <CrosswordCard 
+                      key={crossword._id}
+                      title={crossword.title}
+                      questionCount={crossword.questionCount}
+                      timesPlayed={crossword.timesPlayed || 0}
+                      author={crossword.author}
+                      grade={crossword.grade}
+                      onClick={() => handleCardClick(crossword)}
+                    />
+                  ))}
+                </CardGrid>
+              </Section>
+
+              <Section color="#fff5f5">
+                <SectionTitle>Ô chữ phổ biến</SectionTitle>
+                <CardGrid>
+                  {libraryCrosswords.mostPlayed.map((crossword) => (
+                    <CrosswordCard 
+                      key={crossword._id}
+                      title={crossword.title}
+                      questionCount={crossword.questionCount}
+                      timesPlayed={crossword.timesPlayed || 0}
+                      author={crossword.author}
+                      grade={crossword.grade}
+                      onClick={() => handleCardClick(crossword)}
+                    />
+                  ))}
+                </CardGrid>
+              </Section>
+
+              <Section color="#f0f8f1">
+                <SectionTitle>Ô chữ ngẫu nhiên</SectionTitle>
+                <CardGrid>
+                  {libraryCrosswords.random.map((crossword) => (
+                    <CrosswordCard 
+                      key={crossword._id}
+                      title={crossword.title}
+                      questionCount={crossword.questionCount}
+                      timesPlayed={crossword.timesPlayed || 0}
+                      author={crossword.author}
+                      grade={crossword.grade}
+                      onClick={() => handleCardClick(crossword)}
+                    />
+                  ))}
+                </CardGrid>
+              </Section>
+            </LibraryContent>
+          )}
+
+          {/* Thêm Modal */}
+          {selectedCrossword && (
+            <InformationModal
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              data={selectedCrossword}
+            />
+          )}
+        </>
       )}
     </Container>
   );
@@ -439,37 +439,11 @@ const LibraryContent = styled.div`
   padding: 0 20px;
 `;
 
-const LibraryColumn = styled.div`
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const ColumnHeader = styled.div`
-  padding-bottom: 10px;
-  border-bottom: 2px solid #333;
-  margin-bottom: 20px;
-`;
-
-const ColumnTitle = styled.h2`
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0;
-  text-align: center;
-`;
-
-const CrosswordList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-`;
-
 const LoadingSpinner = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 1.1rem;
 `;
 
 const SearchButton = styled.button`

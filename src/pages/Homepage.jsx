@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import imageLeft from '../assets/imgs/playnow.png';
 import imageRight from '../assets/imgs/create.png';
 import EditModal from '../components/modals/Edit';
+import demoVideo from '../assets/videos/demo.mp4';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -43,9 +44,10 @@ const Homepage = () => {
           </WelcomeText>
         </LeftColumn>
         <RightColumn>
-          <VideoPlaceholder>
-            Video minh họa sẽ được thêm vào đây
-          </VideoPlaceholder>
+          <StyledVideo autoPlay muted loop controls>
+            <source src={demoVideo} type="video/mp4" />
+            Trình duyệt của bạn không hỗ trợ video.
+          </StyledVideo>
         </RightColumn>
       </HeroSection>
 
@@ -157,16 +159,11 @@ const CallToAction = styled.div`
   background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
 `;
 
-const VideoPlaceholder = styled.div`
+const StyledVideo = styled.video`
   width: 100%;
   height: 400px;
-  background-color: rgba(0, 0, 0, 0.1);
+  object-fit: cover;
   border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-  font-size: 1.2rem;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 `;
 
