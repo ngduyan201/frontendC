@@ -107,6 +107,7 @@ const RightColumn = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 `;
 
 const WelcomeText = styled.div`
@@ -161,10 +162,12 @@ const CallToAction = styled.div`
 
 const StyledVideo = styled.video`
   width: 100%;
-  height: 400px;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   border-radius: 20px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-height: 500px;
+  background-color: #f5f5f5;
 `;
 
 const SecondSection = styled.div`
