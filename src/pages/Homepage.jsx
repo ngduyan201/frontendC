@@ -167,7 +167,7 @@ const StyledVideo = styled.video`
   border-radius: 20px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   max-height: 500px;
-  background-color: #f5f5f5;
+  background-color: transparent;
 `;
 
 const SecondSection = styled.div`
