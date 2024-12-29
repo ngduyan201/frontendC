@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import authService from '../../services/authService';
 
-const ForgotPasswordForm = () => {
+const ForgotPasswordForm = ({ onClose }) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [response, setResponse] = useState(null);
 
   const handleRequestReset = async (e) => {
     e.preventDefault();
@@ -47,7 +48,7 @@ const ForgotPasswordForm = () => {
       const response = await authService.resetPassword(email, code, newPassword);
       if (response.success) {
         toast.success('Đặt lại mật khẩu thành công');
-        // Redirect to login
+        setResponse(response);
       }
     } catch (error) {
       toast.error(error.message || 'Có lỗi xảy ra');

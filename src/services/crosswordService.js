@@ -338,9 +338,9 @@ export const crosswordService = {
     }
   },
 
-  markAsCompleted: async (crosswordId) => {
+  markAsCompleted: async () => {
     try {
-      const response = await api.post(API_URLS.CROSSWORDS.COMPLETE(crosswordId));
+      const response = await api.post(API_URLS.CROSSWORDS.COMPLETE);
       
       if (!response.success) {
         throw new Error(response.message || 'Có lỗi xảy ra khi đánh dấu hoàn thành');

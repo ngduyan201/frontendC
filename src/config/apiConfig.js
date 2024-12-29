@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
+// const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 export const API_URLS = {
   AUTH: {
@@ -35,7 +36,7 @@ export const API_URLS = {
     GET_SECRET_KEY: '/crosswords/get-secret-key',
     SEARCH: '/crosswords/search',
     CHECK_TITLE: '/crosswords/check-title',
-    COMPLETE: (id) => `/crosswords/${id}/complete`,
+    COMPLETE: '/crosswords/complete',
   }
 }; 
 

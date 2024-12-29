@@ -268,6 +268,8 @@ const AccountPage = () => {
                           title={crossword.title || 'Ô chữ không có tên'}
                           questionCount={crossword.questionCount || 0}
                           timesPlayed={crossword.timesPlayed || 0}
+                          completionCount={crossword.completionCount || 0}
+                          isCompleted={crossword.isCompleted}
                           grade={crossword.grade}
                           author={crossword.author || 'Ẩn danh'}
                           onClick={() => handleCardClick(crossword)}

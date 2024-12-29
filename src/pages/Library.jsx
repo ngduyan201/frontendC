@@ -256,6 +256,8 @@ const Library = () => {
                       title={crossword.title}
                       questionCount={crossword.questionCount}
                       timesPlayed={crossword.timesPlayed || 0}
+                      completionCount={crossword.completionCount || 0}
+                      isCompleted={crossword.isCompleted}
                       author={crossword.author}
                       grade={crossword.grade}
                       onClick={() => handleCardClick(crossword)}
@@ -288,6 +290,8 @@ const Library = () => {
                       title={crossword.title}
                       questionCount={crossword.questionCount}
                       timesPlayed={crossword.timesPlayed || 0}
+                      completionCount={crossword.completionCount || 0}
+                      isCompleted={crossword.isCompleted}
                       author={crossword.author}
                       grade={crossword.grade}
                       onClick={() => handleCardClick(crossword)}
@@ -305,6 +309,8 @@ const Library = () => {
                       title={crossword.title}
                       questionCount={crossword.questionCount}
                       timesPlayed={crossword.timesPlayed || 0}
+                      completionCount={crossword.completionCount || 0}
+                      isCompleted={crossword.isCompleted}
                       author={crossword.author}
                       grade={crossword.grade}
                       onClick={() => handleCardClick(crossword)}
@@ -322,6 +328,8 @@ const Library = () => {
                       title={crossword.title}
                       questionCount={crossword.questionCount}
                       timesPlayed={crossword.timesPlayed || 0}
+                      completionCount={crossword.completionCount || 0}
+                      isCompleted={crossword.isCompleted}
                       author={crossword.author}
                       grade={crossword.grade}
                       onClick={() => handleCardClick(crossword)}

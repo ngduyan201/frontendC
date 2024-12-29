@@ -24,21 +24,19 @@ const CrosswordCard = memo(({
   onClick,
   timesPlayed = 0,
   grade = '1',
-  completedBy = [],
   completionCount = 0,
-  currentUserId
+  isCompleted = false
 }) => {
   const isLongTitle = title.length > 20;
-  const isCompletedByUser = completedBy.some(c => c.user === currentUserId);
 
   return (
     <CardContainer $width={width} $height={height} onClick={onClick} $grade={grade}>
-      {isCompletedByUser && (
-        <CompleteBadge>✓</CompleteBadge>
-      )}
-      <Title $isLongTitle={isLongTitle} title={isLongTitle ? title : undefined}>
-        {title}
-      </Title>
+      <TitleSection>
+        <Title $isLongTitle={isLongTitle} title={isLongTitle ? title : undefined}>
+          {title}
+        </Title>
+        {isCompleted && <CompletedText>Đã hoàn thành</CompletedText>}
+      </TitleSection>
       <CardFooter>
         <InfoItem>
           <FaCheck size={18} color="#4CAF50" /> {completionCount}
@@ -66,16 +64,12 @@ CrosswordCard.propTypes = {
   onClick: PropTypes.func,
   timesPlayed: PropTypes.number,
   grade: PropTypes.string,
-  completedBy: PropTypes.arrayOf(PropTypes.shape({
-    user: PropTypes.string,
-    completedAt: PropTypes.string
-  })),
   completionCount: PropTypes.number,
-  currentUserId: PropTypes.string
+  isCompleted: PropTypes.bool
 };
 
 const CardContainer = styled.div`
-  background: ${props => getBackgroundColor(props.$grade)};
+  background: ${props => props.$isCompleted ? '#f0f7f0' : getBackgroundColor(props.$grade)};
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -95,13 +89,20 @@ const CardContainer = styled.div`
   }
 `;
 
+const TitleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 15px;
+`;
+
 const Title = styled.h2`
   font-size: 1.8rem;
   color: #333;
   margin: 0;
   text-align: center;
   font-weight: bold;
-  margin-bottom: 20px;
   padding: 2px 8px;
   
   ${props => props.$isLongTitle ? `
@@ -109,6 +110,15 @@ const Title = styled.h2`
     overflow: hidden;
     text-overflow: ellipsis;
   ` : ''}
+`;
+
+const CompletedText = styled.span`
+  color: #000000;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #FFD700;
+  padding: 2px 8px;
+  border-radius: 4px;
 `;
 
 const CardFooter = styled.div`
@@ -131,21 +141,6 @@ const InfoItem = styled.span`
   svg {
     color: #555;
   }
-`;
-
-const CompleteBadge = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
 `;
 
 export default CrosswordCard;
