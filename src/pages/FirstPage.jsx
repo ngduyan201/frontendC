@@ -1,13 +1,15 @@
 import { useState } from 'react'; 
 import bg1 from '../assets/imgs/bg1.jpeg';
 import logo from '../assets/imgs/logo.png';
-import LoginForm from '../components/features/LoginForm'; // Import LoginForm
-import RegisterForm from '../components/features/RegisterForm'; // Import RegisterForm
+import LoginForm from '../components/features/LoginForm';
+import RegisterForm from '../components/features/RegisterForm';
+import ForgotPasswordForm from '../components/features/ForgotPasswordForm';
 import { useAuth } from '../contexts/AuthContext';
 
 function FirstPage() {
   const [activeForm, setActiveForm] = useState(null);
   const [isRegisterActive, setIsRegisterActive] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { isLoginLoading } = useAuth();
 
   // Hàm chuyển đổi form
@@ -25,6 +27,16 @@ function FirstPage() {
     handleFormToggle('login');
   };
 
+  // Hàm xử lý hiển thị form quên mật khẩu
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  // Hàm đóng modal
+  const handleCloseForgotPassword = () => {
+    setShowForgotPassword(false);
+  };
+
   return (
     <div className="min-h-screen flex bg-gradient-to-r from-[#0097b2] to-[#7ed957]">
       {isLoginLoading ? (
@@ -35,6 +47,22 @@ function FirstPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Modal Quên mật khẩu */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg relative max-w-md w-full mx-4">
+            {/* Nút đóng */}
+            <button
+              onClick={handleCloseForgotPassword}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+            <ForgotPasswordForm onClose={handleCloseForgotPassword} />
+          </div>
+        </div>
+      )}
 
       {/* Phần trái */}
       <div className="w-1/2 bg-white flex flex-col justify-center items-center py-16">
@@ -73,6 +101,13 @@ function FirstPage() {
                        }`}
           >
             ĐĂNG KÝ
+          </button>
+
+          <button
+            onClick={handleForgotPassword}
+            className="text-teal-600 hover:underline mt-2 text-sm font-medium"
+          >
+            Quên mật khẩu?
           </button>
         </div>
       </div>

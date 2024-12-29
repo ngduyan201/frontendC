@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
 
 export const API_URLS = {
@@ -7,6 +6,9 @@ export const API_URLS = {
     LOGIN: '/auth/login',
     REFRESH_TOKEN: '/auth/refresh-token',
     LOGOUT: '/auth/logout',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    VERIFY_RESET_CODE: '/auth/verify-reset-code',
+    RESET_PASSWORD: '/auth/reset-password',
   },
   
   USER: {
