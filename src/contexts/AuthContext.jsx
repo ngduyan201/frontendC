@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 import userService from '../services/userService';
 import { toast } from 'react-toastify';
@@ -9,6 +9,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [profileStatus, setProfileStatus] = useState({
+    isCompleted: false,
+    missingFields: []
+  });
 
   // Hàm kiểm tra và refresh token
   const checkAuth = async () => {
@@ -97,6 +101,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Thêm hàm kiểm tra profile status
+  const checkProfileStatus = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const response = await userService.getProfile();
+      if (response.success) {
+        const { fullName, birthDate, occupation, phone } = response.data;
+        const missingFields = [];
+        
+        if (!fullName) missingFields.push('fullName');
+        if (!birthDate) missingFields.push('birthDate');
+        if (!occupation) missingFields.push('occupation');
+        if (!phone) missingFields.push('phone');
+
+        setProfileStatus({
+          isCompleted: missingFields.length === 0,
+          missingFields
+        });
+      }
+    } catch (error) {
+      console.error('Check profile status error:', error);
+    }
+  }, [user]);
+
+  // Thêm vào useEffect
+  useEffect(() => {
+    if (user) {
+      checkProfileStatus();
+    }
+  }, [user, checkProfileStatus]);
+
   return (
     <AuthContext.Provider value={{ 
       currentUser: user,
@@ -105,7 +141,9 @@ export const AuthProvider = ({ children }) => {
       logout, 
       isLoading,
       isLoginLoading,
-      fetchUserProfile
+      fetchUserProfile,
+      profileStatus,
+      checkProfileStatus // Export function
     }}>
       {!isLoading && children}
     </AuthContext.Provider>

@@ -36,7 +36,7 @@ const Modal = ({ isOpen, onClose, data }) => {
       }
       onClose();
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi bắt đầu trò chơi');
+      console.error('Có lỗi xảy ra khi bắt đầu trò chơi', error);
     }
   };
 

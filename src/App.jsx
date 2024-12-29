@@ -14,11 +14,12 @@ import PublicRoute from './components/routes/PublicRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RequireCrosswordSession from './components/hoc/RequireCrosswordSession';
+import { withProfileCheck } from './components/hoc/withProfileCheck';
 
 // Lazy load cho các trang phức tạp
-const CreatePage = lazy(() => import('./pages/CreatePage'));
-const SinglePlay = lazy(() => import('./pages/SinglePlay'));
-const TeamPlay = lazy(() => import('./pages/TeamPlay'));
+const CreatePage = withProfileCheck(lazy(() => import('./pages/CreatePage')));
+const SinglePlay = withProfileCheck(lazy(() => import('./pages/SinglePlay')));
+const TeamPlay = withProfileCheck(lazy(() => import('./pages/TeamPlay')));
 const CodePlay = lazy(() => import('./pages/CodePlay'));
 
 // Loading component đơn giản

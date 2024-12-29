@@ -181,7 +181,7 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         onClose();
       }
     } catch (error) {
-      alert('Có lỗi xảy ra khi tạo ô chữ');
+      console.error('Có lỗi xảy ra khi tạo ô chữ', error);
     }
   };
 
