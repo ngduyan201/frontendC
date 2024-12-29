@@ -7,6 +7,7 @@ import Library from './pages/Library';
 import GuidePage from './pages/Guide';
 import CodeEnter from './pages/CodeEnter';
 import AccountPage from './pages/AccountPage';
+import LeaderBoard from './pages/LeaderBoard';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 import PublicRoute from './components/routes/PublicRoute';
@@ -51,13 +52,6 @@ function App() {
               </Suspense>
             </ProtectedRoute>
           } />
-          <Route path="code-play" element={
-            <ProtectedRoute>
-              <Suspense fallback={<LoadingFallback />}>
-                <CodePlay />
-              </Suspense>
-            </ProtectedRoute>
-          } />
           <Route path="create" element={
             <ProtectedRoute>
               <RequireCrosswordSession>
@@ -65,6 +59,22 @@ function App() {
                   <CreatePage />
                 </Suspense>
               </RequireCrosswordSession>
+            </ProtectedRoute>
+          } />
+          
+          {/* CodeEnter tách riêng */}
+          <Route path="code" element={
+            <ProtectedRoute>
+              <CodeEnter />
+            </ProtectedRoute>
+          } />
+          
+          {/* Code Play */}
+          <Route path="code-play/:code" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingFallback />}>
+                <CodePlay />
+              </Suspense>
             </ProtectedRoute>
           } />
           
@@ -76,8 +86,8 @@ function App() {
           }>
             <Route path="homepage" element={<Homepage />} />
             <Route path="library" element={<Library />} />
+            <Route path="leaderboard" element={<LeaderBoard />} />
             <Route path="guide" element={<GuidePage />} />
-            <Route path="code" element={<CodeEnter />} />
             <Route path="account" element={<AccountPage />} />
           </Route>
         </Routes>

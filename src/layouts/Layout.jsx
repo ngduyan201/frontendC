@@ -79,10 +79,10 @@ const Layout = () => {
           </NavButton>
           
           <NavButton 
-            to="/code"
+            to="/leaderboard"
             className={({ isActive }) => isActive ? 'active' : ''}
           >
-            NHẬP MÃ
+            BXH
           </NavButton>
           
           <NavButton 

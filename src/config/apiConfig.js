@@ -1,5 +1,5 @@
-// const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
+//const API_BASE_URL = 'http://localhost:5001/api';
 
 export const API_URLS = {
   AUTH: {
@@ -16,6 +16,7 @@ export const API_URLS = {
     PROFILE: '/user/profile',
     UPDATE_PROFILE: '/user/profile',
     CHANGE_PASSWORD: '/user/change-password',
+    LEADERBOARD_CROSSWORDS: '/user/leaderboard/crosswords',
   },
 
   CROSSWORDS: {

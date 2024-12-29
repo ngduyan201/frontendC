@@ -178,6 +178,74 @@ class UserService {
       };
     }
   }
+
+  async getTopCrosswordCreators() {
+    try {
+      console.log('Calling API getTopCrosswordCreators...');
+      const response = await api.get('/user/leaderboard/crosswords');
+      
+      console.log('API Response:', response);
+      
+      if (!response?.data) {
+        console.log('No data in response');
+        return {
+          success: false,
+          message: 'Không nhận được dữ liệu từ server'
+        };
+      }
+
+      console.log('Formatted response data:', response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('API Error:', error);
+      console.error('Error response:', error.response);
+      
+      if (error.code === 'ERR_NETWORK') {
+        return {
+          success: false,
+          message: 'Không thể kết nối đến server...'
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tải bảng xếp hạng'
+      };
+    }
+  }
+
+  async getMostCompletions() {
+    try {
+      const response = await api.get('/users/leaderboard/completions');
+      
+      if (!response?.data) {
+        return {
+          success: false,
+          message: 'Không nhận được dữ liệu từ server'
+        };
+      }
+
+      return {
+        success: true,
+        data: response.data.data
+      };
+    } catch (error) {
+      if (error.code === 'ERR_NETWORK') {
+        return {
+          success: false,
+          message: 'Không thể kết nối đến server...'
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Không thể tải bảng xếp hạng'
+      };
+    }
+  }
 }
 
 export default new UserService();
