@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { FaUser, FaQuestion, FaGamepad } from 'react-icons/fa';
+import { FaUser, FaQuestion, FaGamepad, FaCheck } from 'react-icons/fa';
 
 const getBackgroundColor = (grade) => {
   const gradeNum = parseInt(grade.replace('Lớp ', ''));
@@ -23,16 +23,26 @@ const CrosswordCard = memo(({
   height = '150px',
   onClick,
   timesPlayed = 0,
-  grade = '1'
+  grade = '1',
+  completedBy = [],
+  completionCount = 0,
+  currentUserId
 }) => {
   const isLongTitle = title.length > 20;
+  const isCompletedByUser = completedBy.some(c => c.user === currentUserId);
 
   return (
     <CardContainer $width={width} $height={height} onClick={onClick} $grade={grade}>
+      {isCompletedByUser && (
+        <CompleteBadge>✓</CompleteBadge>
+      )}
       <Title $isLongTitle={isLongTitle} title={isLongTitle ? title : undefined}>
         {title}
       </Title>
       <CardFooter>
+        <InfoItem>
+          <FaCheck size={18} color="#4CAF50" /> {completionCount}
+        </InfoItem>
         <InfoItem>
           <FaQuestion size={18} color="#FF9800" /> {questionCount}
         </InfoItem>
@@ -55,7 +65,13 @@ CrosswordCard.propTypes = {
   height: PropTypes.string,
   onClick: PropTypes.func,
   timesPlayed: PropTypes.number,
-  grade: PropTypes.string
+  grade: PropTypes.string,
+  completedBy: PropTypes.arrayOf(PropTypes.shape({
+    user: PropTypes.string,
+    completedAt: PropTypes.string
+  })),
+  completionCount: PropTypes.number,
+  currentUserId: PropTypes.string
 };
 
 const CardContainer = styled.div`
@@ -115,6 +131,21 @@ const InfoItem = styled.span`
   svg {
     color: #555;
   }
+`;
+
+const CompleteBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 `;
 
 export default CrosswordCard;

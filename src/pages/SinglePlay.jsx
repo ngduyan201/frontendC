@@ -277,13 +277,23 @@ const PlayPage = () => {
       const userKeyword = keyword.toUpperCase();
       const playData = JSON.parse(localStorage.getItem('crosswordPlayData'));
       const encryptedKeyword = playData.data.mainKeyword[0].keyword;
+      const crosswordId = playData.data._id; // Lấy ID của ô chữ
 
       try {
         const bytes = CryptoJS.AES.decrypt(encryptedKeyword, key);
         const correctKeyword = bytes.toString(CryptoJS.enc.Utf8);
 
         if (userKeyword === correctKeyword) {
-          playSound(playKeywordCorrect); // Thay thế playKeywordCorrect()
+          playSound(playKeywordCorrect);
+          
+          // Gọi API đánh dấu hoàn thành
+          try {
+            await crosswordService.markAsCompleted(crosswordId);
+          } catch (error) {
+            console.error('Error marking crossword as completed:', error);
+            // Không cần hiển thị lỗi này cho người dùng vì không ảnh hưởng gameplay
+          }
+
           toast.success(' Từ khóa chính xác!', {
             position: "top-center",
             autoClose: 2000,
@@ -294,14 +304,12 @@ const PlayPage = () => {
             progress: undefined,
           });
 
-          // Set state khi từ khóa đúng
           setIsKeywordCorrect(true);
-
           setTimeout(() => {
             displayKeywordOnGrid(userKeyword);
           }, 1000);
         } else {
-          playSound(playKeywordWrong); // Thay thế playKeywordWrong()
+          playSound(playKeywordWrong);
           toast.error(' Từ khóa không chính xác!', {
             position: "top-center",
             autoClose: 2000,

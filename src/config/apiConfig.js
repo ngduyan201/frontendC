@@ -34,7 +34,8 @@ export const API_URLS = {
     START_PLAY: (id) => `/crosswords/play/${id}`,
     GET_SECRET_KEY: '/crosswords/get-secret-key',
     SEARCH: '/crosswords/search',
-    CHECK_TITLE: '/crosswords/check-title'
+    CHECK_TITLE: '/crosswords/check-title',
+    COMPLETE: (id) => `/crosswords/${id}/complete`,
   }
 }; 
 

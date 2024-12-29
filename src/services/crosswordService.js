@@ -336,6 +336,27 @@ export const crosswordService = {
       console.error('Check duplicate title error:', error);
       throw error;
     }
+  },
+
+  markAsCompleted: async (crosswordId) => {
+    try {
+      const response = await api.post(API_URLS.CROSSWORDS.COMPLETE(crosswordId));
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Có lỗi xảy ra khi đánh dấu hoàn thành');
+      }
+
+      return {
+        success: true,
+        message: response.message
+      };
+    } catch (error) {
+      console.error('Mark as completed error:', error);
+      throw {
+        success: false,
+        message: error.response?.data?.message || 'Có lỗi xảy ra'
+      };
+    }
   }
 };
 
