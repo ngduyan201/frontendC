@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { crosswordService } from '../services/crosswordService';
-import CrosswordCard from '../components/features/CrosswordCard';
+import CrosswordCard from '../components/cards/CrosswordCard';
 import InformationModal from '../components/modals/Information';
 import { toast } from 'react-toastify';
 
@@ -71,7 +71,6 @@ const Library = () => {
           toast.error('Không thể tải danh sách ô chữ');
         }
       } catch (error) {
-        console.error('Error loading library crosswords:', error);
         toast.error('Có lỗi xảy ra khi tải thư viện');
       } finally {
         setIsLoading(false);
@@ -137,7 +136,6 @@ const Library = () => {
         toast.error(response.message || 'Có lỗi xảy ra khi tìm kiếm');
       }
     } catch (error) {
-      console.error('Search error:', error);
       toast.error('Có lỗi xảy ra khi tìm kiếm');
     } finally {
       setIsLoading(false);
@@ -164,7 +162,6 @@ const Library = () => {
         toast.error(response.message || 'Có lỗi xảy ra khi tải trang');
       }
     } catch (error) {
-      console.error('Page change error:', error);
       toast.error('Có lỗi xảy ra khi tải trang');
     } finally {
       setIsLoading(false);

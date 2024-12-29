@@ -30,7 +30,6 @@ const Layout = () => {
 
       toast.success('Đăng xuất thành công');
     } catch (error) {
-      console.error('Logout error:', error);
 
       authLogout();
 

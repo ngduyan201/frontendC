@@ -4,7 +4,6 @@ import { API_URLS } from '../config/apiConfig';
 export const crosswordService = {
   createCrossword: async (crosswordData) => {
     try {
-      console.log('Creating crossword with data:', crosswordData);
       const response = await api.post(API_URLS.CROSSWORDS.CREATE, crosswordData);
       return response;
     } catch (error) {
@@ -17,7 +16,6 @@ export const crosswordService = {
       if (!id) {
         throw new Error('ID ô chữ không được để trống');
       }
-      console.log('Fetching crossword:', id);
       const response = await api.get(API_URLS.CROSSWORDS.GET_BY_ID(id));
       return response;
     } catch (error) {
@@ -27,7 +25,6 @@ export const crosswordService = {
 
   getAllCrosswords: async () => {
     try {
-      console.log('Fetching all crosswords');
       const response = await api.get(API_URLS.CROSSWORDS.GET);
       return response;
     } catch (error) {
@@ -40,7 +37,6 @@ export const crosswordService = {
       if (!id) {
         throw new Error('ID ô chữ không được để trống');
       }
-      console.log('Updating crossword:', id, updateData);
       const response = await api.put(API_URLS.CROSSWORDS.UPDATE(id), updateData);
       
       if (!response.data) {
@@ -52,7 +48,6 @@ export const crosswordService = {
         data: response.data
       };
     } catch (error) {
-      console.error('Update crossword error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật'
@@ -68,7 +63,6 @@ export const crosswordService = {
       const response = await api.delete(API_URLS.CROSSWORDS.DELETE(id));
       return response;
     } catch (error) {
-      console.error('Delete crossword error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Có lỗi xảy ra khi xóa ô chữ'
@@ -105,7 +99,6 @@ export const crosswordService = {
       const response = await api.post(API_URLS.CROSSWORDS.AUTO_SAVE, data);
       return response;
     } catch (error) {
-      console.error('Auto save error:', error);
       throw error;
     }
   },
@@ -116,7 +109,6 @@ export const crosswordService = {
       const response = await api.get(API_URLS.CROSSWORDS.RECOVER_SESSION);
       return response;
     } catch (error) {
-      console.error('Session recovery error:', error);
       throw error;
     }
   },
@@ -126,7 +118,6 @@ export const crosswordService = {
       const response = await api.post(API_URLS.CROSSWORDS.END_SESSION);
       return response;
     } catch (error) {
-      console.error('End session error:', error);
       throw error;
     }
   },
@@ -136,7 +127,6 @@ export const crosswordService = {
       const response = await api.post(API_URLS.CROSSWORDS.SAVE_CROSSWORD, crosswordData);
       return response;
     } catch (error) {
-      console.error('Save crossword error:', error);
       throw error;
     }
   },
@@ -146,7 +136,6 @@ export const crosswordService = {
       const response = await api.get(API_URLS.CROSSWORDS.GET_USER_CROSSWORDS);
       
       if (!response.success || !Array.isArray(response.data)) {
-        console.error('Invalid response format:', response);
         return {
           success: false,
           data: []
@@ -159,7 +148,6 @@ export const crosswordService = {
       };
 
     } catch (error) {
-      console.error('Fetch crosswords error:', error);
       return {
         success: false,
         data: []
@@ -172,7 +160,6 @@ export const crosswordService = {
       const response = await api.post(`${API_URLS.CROSSWORDS.START_EDIT}/${crosswordId}`);
       return response;
     } catch (error) {
-      console.error('Start edit session error:', error);
       throw error;
     }
   },
@@ -182,7 +169,6 @@ export const crosswordService = {
       const response = await api.get(API_URLS.CROSSWORDS.GET_LIBRARY);
       
       if (!response.success || !response.data) {
-        console.error('Invalid library response format:', response);
         return {
           success: false,
           data: {
@@ -199,7 +185,6 @@ export const crosswordService = {
       };
 
     } catch (error) {
-      console.error('Fetch library crosswords error:', error);
       return {
         success: false,
         data: {
@@ -221,8 +206,6 @@ export const crosswordService = {
         mode: 'single'
       });
       
-      console.log('Response từ API startPlay:', response);
-
       if (response.success) {
         localStorage.setItem('crosswordPlayData', JSON.stringify({
           success: response.success,
@@ -233,7 +216,6 @@ export const crosswordService = {
 
       return response;
     } catch (error) {
-      console.error('Start single play error:', error);
       throw error;
     }
   },
@@ -255,7 +237,6 @@ export const crosswordService = {
         data: sessionData
       };
     } catch (error) {
-      console.error('Get play session error:', error);
       return { success: false };
     }
   },
@@ -271,7 +252,6 @@ export const crosswordService = {
       
       return response;
     } catch (error) {
-      console.error('Clear play session error:', error);
       throw error;
     }
   },
@@ -284,7 +264,6 @@ export const crosswordService = {
       }
       return response.data.secretKey;
     } catch (error) {
-      console.error('Get secret key error:', error);
       throw error;
     }
   },
@@ -315,7 +294,6 @@ export const crosswordService = {
       };
 
     } catch (error) {
-      console.error('Search crosswords error:', error);
       return {
         success: false,
         message: error.message || 'Có lỗi xảy ra khi tìm kiếm',
@@ -333,7 +311,6 @@ export const crosswordService = {
       const response = await api.post(API_URLS.CROSSWORDS.CHECK_TITLE, { title });
       return response;
     } catch (error) {
-      console.error('Check duplicate title error:', error);
       throw error;
     }
   },
@@ -351,7 +328,6 @@ export const crosswordService = {
         message: response.message
       };
     } catch (error) {
-      console.error('Mark as completed error:', error);
       throw {
         success: false,
         message: error.response?.data?.message || 'Có lỗi xảy ra'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import PlayerCard from '../components/features/PlayerCard';
+import PlayerCard from '../components/cards/PlayerCard';
 import userService from '../services/userService';
 
 const LeaderBoard = () => {
@@ -11,18 +11,15 @@ const LeaderBoard = () => {
     const fetchLeaderboard = async () => {
       try {
         const response = await userService.getTopCrosswordCreators();
-        console.log('API Response:', response);
         
         // Kiểm tra response và lấy data từ response.data
         if (response?.success && Array.isArray(response.data)) {
           setPlayers(response.data);
         } else {
-          console.error('Invalid response format:', response);
           setPlayers([]);
         }
 
       } catch (error) {
-        console.error('Leaderboard error:', error);
         setError('Không thể tải bảng xếp hạng');
         setPlayers([]);
       }

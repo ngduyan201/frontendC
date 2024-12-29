@@ -90,7 +90,6 @@
             localStorage.removeItem('crosswordSession');
           }
         } catch (error) {
-          console.error('Error restoring session:', error);
           localStorage.removeItem('crosswordSession');
         }
       }
@@ -183,7 +182,6 @@
 
         navigate('/account');
       } catch (error) {
-        console.error('Lỗi khi kết thúc phiên:', error);
         toast.error('Có lỗi xảy ra khi kết thúc phiên làm việc');
       }
     };
@@ -239,7 +237,6 @@
           toast.error(response.message || 'Có lỗi xảy ra khi lưu ô chữ');
         }
       } catch (error) {
-        console.error('Save error:', error);
         if (error.code === 'ERR_NETWORK') {
           toast.error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối và thử lại.');
         } else {

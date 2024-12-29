@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
-//const API_BASE_URL = 'http://localhost:5001/api';
+//const API_BASE_URL = 'https://backendc-37ta.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 export const API_URLS = {
   AUTH: {

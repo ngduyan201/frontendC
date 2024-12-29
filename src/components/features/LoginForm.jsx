@@ -55,7 +55,6 @@ function LoginForm() {
         setErrorMessage(response.message || 'Đăng nhập thất bại');
       }
     } catch (error) {
-      console.error('Login error:', error);
       if (error.response?.status === 401) {
         setErrorMessage('Tài khoản hoặc mật khẩu không chính xác');
       } else {

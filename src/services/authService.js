@@ -81,7 +81,6 @@ export const authService = {
 
       return { success: true };
     } catch (error) {
-      console.error('Logout error:', error);
       throw error;
     }
   },

@@ -75,7 +75,6 @@ const ChangePasswordModal = ({ show, onClose }) => {
         setError(response.message || 'Có lỗi xảy ra khi đổi mật khẩu');
       }
     } catch (error) {
-      console.error('Change password error:', error);
       if (error.code === 'ERR_NETWORK') {
         setError('Không thể kết nối đến server. Vui lòng kiểm tra kết nối và thử lại.');
       } else {

@@ -37,7 +37,6 @@ const CrosswordSessionCheck = ({ children, onSessionData }) => {
 
         setIsChecking(false);
       } catch (error) {
-        console.error('Session check error:', error);
         toast.error('Có lỗi xảy ra khi kiểm tra phiên làm việc');
         navigate('/create');
       }

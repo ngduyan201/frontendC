@@ -12,10 +12,8 @@ const RequireCrosswordSession = ({ children }) => {
       try {
         // Thay vì kiểm tra cookie trực tiếp, gọi API kiểm tra session
         const response = await crosswordService.getCurrentSession();
-        console.log('Session check response:', response);
 
         if (!response.success) {
-          console.log('No valid session found');
           toast.error('Vui lòng tạo ô chữ mới từ trang chủ');
           navigate('/homepage');
           return;
@@ -24,7 +22,6 @@ const RequireCrosswordSession = ({ children }) => {
         setIsChecking(false);
 
       } catch (error) {
-        console.error('Error checking session:', error);
         toast.error('Vui lòng tạo ô chữ mới từ trang chủ');
         navigate('/homepage');
       }

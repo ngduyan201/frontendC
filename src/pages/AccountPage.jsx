@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import userService from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
 import { useAuth } from '../contexts/AuthContext';
-import CrosswordCard from '../components/features/CrosswordCard';
+import CrosswordCard from '../components/cards/CrosswordCard';
 import { crosswordService } from '../services/crosswordService';
 import EditModal from '../components/modals/Edit';
 
@@ -62,7 +62,6 @@ const AccountPage = () => {
         year: 'numeric'
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
       return '';
     }
   };
@@ -112,7 +111,6 @@ const AccountPage = () => {
         toast.error('Không thể tải danh sách ô chữ');
       }
     } catch (error) {
-      console.error('Error loading crosswords:', error);
       toast.error('Không thể tải danh sách ô chữ');
     } finally {
       setIsLoadingCrosswords(false);
@@ -196,7 +194,6 @@ const AccountPage = () => {
         grade: crossword.grade || '',
         subject: crossword.subject || '',
       };
-      console.log('Setting modal data:', modalData);
       setSelectedCrossword(modalData);
       setShowEditModal(true);
     }
@@ -214,8 +211,6 @@ const AccountPage = () => {
     try {
       if (!selectedCrossword?._id) return;
 
-      console.log('Received data from modal:', updatedData);
-
       // Format lại data cho đúng với yêu cầu của API
       const formattedData = {
         title: updatedData.title,
@@ -223,8 +218,6 @@ const AccountPage = () => {
         subject: updatedData.subject,
         grade: updatedData.grade
       };
-
-      console.log('Formatted data for API:', formattedData);
       
       const response = await crosswordService.updateCrossword(selectedCrossword._id, formattedData);
       
@@ -236,7 +229,6 @@ const AccountPage = () => {
         toast.error('Không thể cập nhật thông tin');
       }
     } catch (error) {
-      console.error('Error updating crossword:', error);
       toast.error('Có lỗi xảy ra khi cập nhật');
     }
   }, [selectedCrossword, loadCrosswords, handleCloseModal]);

@@ -73,14 +73,12 @@ const PlayPage = () => {
     return {
       setKey: (newKey) => {
         key = newKey;
-        console.log('Key set:', !!key); // Log khi set key
       },
       getKey: () => {
-        console.log('Key get:', !!key); // Log khi get key
         return key;
       }
     };
-  }, []); // Đảm bảo closure chỉ được tạo một lần
+  }, []);
 
   // Thêm useEffect để lấy secretKey khi component mount
   useEffect(() => {
@@ -88,15 +86,13 @@ const PlayPage = () => {
       try {
         const key = await crosswordService.getSecretKey();
         secretKeyManager.setKey(key);
-        console.log('Secret key loaded successfully');
       } catch (error) {
-        console.error('Error fetching secret key:', error);
         navigate('/library');
       }
     };
 
     fetchSecretKey();
-  }, [navigate, secretKeyManager]); // Thêm secretKeyManager vào dependencies
+  }, [navigate, secretKeyManager]);
 
   useEffect(() => {
     const loadPuzzleData = () => {
@@ -106,28 +102,18 @@ const PlayPage = () => {
           const title = playData.data.title || 'Ô chữ không có tên';
           setPuzzleTitle(title.toUpperCase());
           
-          // Lấy số câu hỏi từ độ dài từ khóa được mã hóa
           const numberOfQuestions = playData.data.numberOfQuestions;
           setNumberOfQuestions(numberOfQuestions);
           
-          // Khởi tạo letters array
           setLetters(
             Array(numberOfQuestions)
               .fill(null)
               .map(() => Array(17).fill(''))
           );
           
-          // Lưu thông tin câu hỏi
           setQuestions(playData.data.mainKeyword[0].associatedHorizontalKeywords || []);
-          
-          console.log('Loaded puzzle data:', {
-            title,
-            numberOfQuestions,
-            questions: playData.data.mainKeyword[0].associatedHorizontalKeywords
-          });
         }
       } catch (error) {
-        console.error('Error loading puzzle data:', error);
         setPuzzleTitle('Không thể tải dữ liệu');
       }
     };
@@ -148,14 +134,12 @@ const PlayPage = () => {
     try {
       // Xóa secretKey trước khi rời trang
       secretKeyManager.setKey(null);
-      console.log('Secret key cleared');
 
       // Gọi API để xóa session
       await crosswordService.clearPlaySession();
       setShowHomeModal(false);
       navigate('/library');
     } catch (error) {
-      console.error('Error clearing session:', error);
       // Vẫn xóa key và chuyển trang ngay cả khi có lỗi
       secretKeyManager.setKey(null);
       setShowHomeModal(false);
@@ -336,21 +320,17 @@ const PlayPage = () => {
   const handleButtonClick = (index) => {
     if (!isGameStarted && !isViewingAnswers) return;
     
-    // Cho phép di chuyển tự do khi đang xem đáp án
     if (isViewingAnswers) {
       setSelectedButton(index);
       setQuestionData(questions[index]?.questionContent || '');
       return;
     }
 
-    // Logic hiện tại cho chế độ chơi
     if (answers[index]) {
-      console.log('Câu hỏi này đã được trả lời đúng!');
       return;
     }
     
     if (hasReachedMaxAttempts(index)) {
-      console.log('Câu hỏi này đã hết lượt trả lời!');
       return;
     }
     
@@ -576,7 +556,6 @@ const PlayPage = () => {
       setAnswer('');
 
     } catch (error) {
-      console.error('Error showing answers:', error);
       toast.error('Có lỗi xảy ra khi hiển thị đáp án');
     }
   };

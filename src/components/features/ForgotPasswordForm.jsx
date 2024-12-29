@@ -49,6 +49,9 @@ const ForgotPasswordForm = ({ onClose }) => {
       if (response.success) {
         toast.success('Đặt lại mật khẩu thành công');
         setResponse(response);
+        setTimeout(() => {
+          onClose();
+        }, 1500);
       }
     } catch (error) {
       toast.error(error.message || 'Có lỗi xảy ra');

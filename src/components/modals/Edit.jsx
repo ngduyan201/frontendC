@@ -70,7 +70,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
           }
         }
       } catch (error) {
-        console.error('Error checking title:', error);
         setTitleError('Có lỗi xảy ra khi kiểm tra tên');
       } finally {
         setCheckingTitle(false);
@@ -96,7 +95,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         toast.error(response.message || 'Không thể bắt đầu chỉnh sửa');
       }
     } catch (error) {
-      console.error('Error starting edit session:', error);
       toast.error('Có lỗi xảy ra khi bắt đầu chỉnh sửa');
     }
   };
@@ -108,7 +106,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         return;
       }
       // Log data trước khi gửi đi
-      console.log('Form data being sent:', formData);
       onSave(formData);
     }
     setIsEditing(!isEditing);
@@ -176,7 +173,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         subject: formData.subject
       };
 
-      console.log('Creating crossword with data:', crosswordData);
       const response = await crosswordService.createCrossword(crosswordData);
 
       if (response.success) {
@@ -185,7 +181,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         onClose();
       }
     } catch (error) {
-      console.error('Error in handleCreateClick:', error);
       alert('Có lỗi xảy ra khi tạo ô chữ');
     }
   };
@@ -205,7 +200,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         toast.error(response.message || 'Không thể xóa ô chữ');
       }
     } catch (error) {
-      console.error('Delete error:', error);
       toast.error('Có lỗi xảy ra khi xóa ô chữ');
     }
     setShowDeleteConfirm(false);
@@ -222,7 +216,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
         toast.error(response.message || 'Không thể bắt đầu chế độ chơi theo đội');
       }
     } catch (error) {
-      console.error('Team play error:', error);
       toast.error('Có lỗi xảy ra khi bắt đầu chế độ chơi theo đội');
     }
   };
@@ -233,8 +226,6 @@ const EditModal = ({ isOpen, onClose, data, mode = 'edit', onSave, onDeleteSucce
       await crosswordService.clearPlaySession();
       onClose();
     } catch (error) {
-      console.error('Error clearing session:', error);
-      // Vẫn đóng modal ngay cả khi có lỗi
       onClose();
     }
   };
