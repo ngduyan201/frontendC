@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { toast } from 'react-toastify';
 import userService from '../services/userService';
 import ChangePasswordModal from '../components/modals/ChangePWModal';
@@ -39,6 +39,9 @@ const AccountPage = () => {
   const [isLoadingCrosswords, setIsLoadingCrosswords] = useState(false);
   const [selectedCrossword, setSelectedCrossword] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [canSave, setCanSave] = useState(true);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -127,19 +130,61 @@ const AccountPage = () => {
     setCrosswords(allCrosswords.slice(startIndex, endIndex));
   }, [page, allCrosswords, itemsPerPage]);
 
-  const handleChange = (e) => {
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  const checkDuplicateName = debounce(async (fullName) => {
+    if (!fullName || fullName === originalUserInfo.fullName) {
+      setNameError('');
+      setCanSave(true);
+      return;
+    }
+
+    setIsCheckingName(true);
+    try {
+      const response = await userService.checkDuplicateFullname(fullName);
+      
+      // Xử lý đơn giản dựa trên isDuplicate
+      if (response.isDuplicate) {
+        // Tên bị trùng
+        setNameError('Tên này đã được sử dụng');
+        setCanSave(false);
+      } else {
+        // Tên không trùng
+        setNameError('');
+        setCanSave(true);
+      }
+    } catch (error) {
+      setNameError('Lỗi kiểm tra tên');
+      setCanSave(false);
+    } finally {
+      setIsCheckingName(false);
+    }
+  }, 500);
+
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserInfo(prev => ({
       ...prev,
       [name]: value
     }));
-  };
 
-  const handleEditClick = () => {
-    setIsEditing(true);
+    if (name === 'fullName') {
+      checkDuplicateName(value);
+    }
   };
 
   const handleSaveClick = async () => {
+    if (!canSave) {
+      toast.error('Vui lòng sử dụng tên khác');
+      return;
+    }
+
     try {
       setIsSavingProfile(true);
       const response = await userService.updateProfile({
@@ -297,16 +342,40 @@ const AccountPage = () => {
           <AccountInfo>
             <SectionTitle>Thông tin tài khoản</SectionTitle>
             
-            <InfoGroup>
-              <Label>Họ và tên</Label>
-              <Input
-                name="fullName"
-                value={userInfo.fullName || ''}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="Nhập họ và tên"
-              />
-            </InfoGroup>
+            <FormGroup>
+              <Label>
+                Họ và tên {isEditing && <span className="required">*</span>}
+              </Label>
+              <InputWrapper>
+                <Input
+                  type="text"
+                  name="fullName"
+                  value={userInfo.fullName}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  $hasError={!!nameError}
+                />
+                {isEditing && (
+                  <StatusMessage>
+                    {isCheckingName && (
+                      <CheckingStatus>
+                        <i className="fas fa-spinner fa-spin" /> Đang kiểm tra...
+                      </CheckingStatus>
+                    )}
+                    {nameError && (
+                      <ErrorStatus>
+                        <i className="fas fa-exclamation-circle" /> {nameError}
+                      </ErrorStatus>
+                    )}
+                    {!isCheckingName && !nameError && userInfo.fullName !== originalUserInfo.fullName && (
+                      <ValidStatus>
+                        <i className="fas fa-check-circle" /> Tên hợp lệ
+                      </ValidStatus>
+                    )}
+                  </StatusMessage>
+                )}
+              </InputWrapper>
+            </FormGroup>
 
             <InfoGroup>
               <Label>Ngày sinh</Label>
@@ -314,7 +383,7 @@ const AccountPage = () => {
                 type="date"
                 name="birthDate"
                 value={userInfo.birthDate || ''}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 disabled={!isEditing}
                 max={new Date().toISOString().split('T')[0]}
               />
@@ -325,7 +394,7 @@ const AccountPage = () => {
               <Select
                 name="occupation"
                 value={userInfo.occupation || ''}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 disabled={!isEditing}
               >
                 <option value="">Chọn nghề nghiệp</option>
@@ -342,7 +411,7 @@ const AccountPage = () => {
               <Input
                 name="phone"
                 value={userInfo.phone || ''}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 disabled={!isEditing}
                 placeholder="Nhập số điện thoại"
               />
@@ -363,9 +432,9 @@ const AccountPage = () => {
                 <>
                   <SaveButton 
                     onClick={handleSaveClick}
-                    disabled={isSavingProfile}
+                    disabled={!canSave || isCheckingName}
                   >
-                    {isSavingProfile ? 'Đang lưu...' : 'Lưu lại'}
+                    {isSavingProfile ? 'Đang lưu...' : 'Lưu'}
                   </SaveButton>
                   <CancelButton 
                     onClick={handleCancelEdit}
@@ -376,7 +445,7 @@ const AccountPage = () => {
                 </>
               ) : (
                 <EditButton 
-                  onClick={handleEditClick}
+                  onClick={() => setIsEditing(true)}
                   disabled={isSavingProfile}
                 >
                   Chỉnh sửa
@@ -638,6 +707,55 @@ const TotalItems = styled.span`
   
   strong {
     font-weight: 700;
+  }
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+`;
+
+const StatusMessage = styled.div`
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    margin-right: 4px;
+  }
+`;
+
+const CheckingStatus = styled.span`
+  color: #666;
+  animation: fadeIn 0.3s ease-in;
+`;
+
+const ErrorStatus = styled.span`
+  color: #dc3545;
+  animation: fadeIn 0.3s ease-in;
+`;
+
+const ValidStatus = styled.span`
+  color: #28a745;
+  animation: fadeIn 0.3s ease-in;
+`;
+
+// Thêm keyframes cho animation
+const GlobalStyle = createGlobalStyle`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 `;
 

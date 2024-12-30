@@ -17,6 +17,7 @@ export const API_URLS = {
     UPDATE_PROFILE: '/user/profile',
     CHANGE_PASSWORD: '/user/change-password',
     LEADERBOARD_CROSSWORDS: '/user/leaderboard/crosswords',
+    CHECK_DUPLICATE_FULLNAME: '/user/check-fullname',
   },
 
   CROSSWORDS: {

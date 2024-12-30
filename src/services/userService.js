@@ -238,6 +238,20 @@ class UserService {
       };
     }
   }
+
+  async checkDuplicateFullname(fullName) {
+    try {
+      const response = await api.post('/user/check-fullname', { fullName });
+      // Trả về trực tiếp response.data thay vì toàn bộ response
+      return response;
+    } catch (error) {
+      // Trả về object có cùng cấu trúc với response thành công
+      return {
+        success: false,
+        message: 'Lỗi kiểm tra tên'
+      };
+    }
+  }
 }
 
 export default new UserService();
