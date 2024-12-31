@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { toast } from 'react-toastify';
 import userService from '../services/userService';
-import ChangePasswordModal from '../components/modals/ChangePWModal';
+import ChangePasswordModal from '../components/features/ChangePWModal';
 import { useAuth } from '../contexts/AuthContext';
 import CrosswordCard from '../components/cards/CrosswordCard';
 import { crosswordService } from '../services/crosswordService';

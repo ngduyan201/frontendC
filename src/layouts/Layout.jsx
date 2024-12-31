@@ -104,22 +104,24 @@ const Layout = () => {
       <Footer>
         <p>Thông tin liên hệ:</p>
         <p>Email: ngduyan201@gmail.com </p>
-          Sound Effect by{' '}
+        <p>
+          Music:{' '}
           <a 
-            href="https://pixabay.com/vi/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995"
+            href="https://hypeddit.com/roamusic/walkaroundlofi"
             target="_blank"
             rel="noopener noreferrer"
           >
-            freesound_community
+            Roa - Walk Around【LoFi ver.】
           </a>
-          {' '}from{' '}
+          {' '}| License:{' '}
           <a 
-            href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=5995"
+            href="https://roa-music.com"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Pixabay
+            roa-music.com
           </a>
+        </p>
         <p>&copy; 2024 Trò Chơi Ô Chữ. All Rights Reserved.</p>
       </Footer>
 
