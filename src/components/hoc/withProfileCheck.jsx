@@ -5,26 +5,30 @@ import { toast } from 'react-toastify';
 
 export const withProfileCheck = (WrappedComponent) => {
   return function WithProfileCheck(props) {
-    const { profileStatus } = useAuth();
+    const { profileStatus, checkProfileStatus } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (!profileStatus.isCompleted) {
-        toast.info('Vui lòng cập nhật thông tin cá nhân để tiếp tục');
-        navigate('/account', { 
-          state: { 
-            requireUpdate: true,
-            returnPath: window.location.pathname,
-            missingFields: profileStatus.missingFields
-          } 
-        });
-      }
-    }, [profileStatus.isCompleted, navigate]);
+      const checkProfile = async () => {
+        const status = await checkProfileStatus?.();
+        
+        if (status && !status.isCompleted) {
+          toast.info('Vui lòng cập nhật thông tin cá nhân để tiếp tục');
+          navigate('/account', { 
+            state: { 
+              requireUpdate: true,
+              returnPath: window.location.pathname,
+              missingFields: status.missingFields
+            },
+            replace: true
+          });
+        }
+      };
 
-    if (!profileStatus.isCompleted) {
-      return null;
-    }
+      checkProfile();
+    }, []); // Chỉ chạy một lần khi component mount
 
-    return <WrappedComponent {...props} />;
+    // Chỉ render component khi profile đã hoàn thành
+    return profileStatus.isCompleted ? <WrappedComponent {...props} /> : null;
   };
 };

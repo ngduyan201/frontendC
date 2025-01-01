@@ -111,18 +111,23 @@ export const AuthProvider = ({ children }) => {
         const { fullName, birthDate, occupation, phone } = response.data;
         const missingFields = [];
         
-        if (!fullName) missingFields.push('fullName');
+        if (!fullName?.trim()) missingFields.push('fullName');
         if (!birthDate) missingFields.push('birthDate');
         if (!occupation) missingFields.push('occupation');
-        if (!phone) missingFields.push('phone');
+        if (!phone?.trim()) missingFields.push('phone');
+
+        const isCompleted = missingFields.length === 0;
 
         setProfileStatus({
-          isCompleted: missingFields.length === 0,
+          isCompleted,
           missingFields
         });
+
+        return { isCompleted, missingFields };
       }
     } catch (error) {
       console.error('Check profile status error:', error);
+      return { isCompleted: false, missingFields: [] };
     }
   }, [user]);
 
