@@ -32,16 +32,23 @@ const PlayerCard = ({ rank, name, crosswordCount, occupation }) => {
 const CardContainer = styled.div`
   display: flex;
   align-items: center;
-  padding: 16px 24px;
+  padding: 12px;
   background: white;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   position: relative;
   transition: transform 0.2s;
-  gap: 24px;
+  gap: 12px;
+  flex-direction: column;
   
   &:hover {
     transform: translateY(-2px);
+  }
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    padding: 16px 24px;
+    gap: 24px;
   }
 `;
 
@@ -64,11 +71,15 @@ const UserInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 150px;
+  min-width: auto;
   
   svg {
     color: #666;
     font-size: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    min-width: 150px;
   }
 `;
 

@@ -105,7 +105,7 @@ const Layout = () => {
         <p>Thông tin liên hệ:</p>
         <p>Email: ngduyan201@gmail.com </p>
         <p>
-          Music:{' '}
+          Music Video by:{' '}
           <a 
             href="https://hypeddit.com/roamusic/walkaroundlofi"
             target="_blank"
@@ -122,7 +122,24 @@ const Layout = () => {
             roa-music.com
           </a>
         </p>
-        <p>&copy; 2024 Trò Chơi Ô Chữ. All Rights Reserved.</p>
+        <p>
+          Sound Effect by{' '}
+          <a 
+            href="https://pixabay.com/vi/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=82807"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            freesound_community
+          </a>
+          {' '}from{' '}
+          <a 
+            href="https://pixabay.com/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=82807"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pixabay
+          </a>
+        </p>
       </Footer>
 
       {/* Modal Đăng xuất */}
@@ -152,6 +169,7 @@ const LayoutContainer = styled.div`
   background: url(${backgroundImg}) no-repeat center center fixed;
   background-size: cover;
   font-family: Arial, sans-serif;
+  padding: 0;
 `;
 
 const Header = styled.header`
@@ -159,11 +177,18 @@ const Header = styled.header`
   top: 0;
   z-index: 10;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px;
+  }
 `;
 
 const LogoContainer = styled.div`
@@ -178,20 +203,43 @@ const LogoImage = styled.img`
 
 const LogoText = styled.h1`
   font-family: 'Bungee Shade', cursive;
-  font-size: 2.625rem;
+  font-size: 1.5rem;
   color: #444;
-  margin-left: 25px;
+  margin-left: 15px;
   transition: color 0.3s ease;
   letter-spacing: 0.05em;
 
   &:hover {
     color: #339900;
   }
+
+  @media (min-width: 768px) {
+    font-size: 2rem;
+    margin-left: 20px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 2.625rem;
+    margin-left: 25px;
+  }
 `;
 
 const Navigation = styled.nav`
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  
+  @media (min-width: 768px) {
+    gap: 15px;
+  }
+
+  @media (min-width: 1024px) {
+    flex-wrap: nowrap;
+    margin-top: 0;
+    gap: 20px;
+  }
 `;
 
 const NavButton = styled(NavLink)`
@@ -202,6 +250,10 @@ const NavButton = styled(NavLink)`
   background-color: #444;
   color: white;
   font-weight: bold;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: fit-content;
+  width: auto;
 
   &:hover {
     background-color: #339900;
@@ -216,11 +268,27 @@ const NavButton = styled(NavLink)`
       background-color: yellow;
     }
   }
+
+  @media (max-width: 1023px) {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    max-width: min-content;
+  }
+
+  @media (max-width: 767px) {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    max-width: min-content;
+  }
 `;
 
 const MainContent = styled.main`
   flex: 1;
   padding: 20px;
+  
+  @media (min-width: 768px) {
+    padding: 30px;
+  }
 `;
 
 const Footer = styled.footer`
@@ -236,9 +304,25 @@ const LogoutLink = styled.span`
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
+  display: inline-block;
+  max-width: fit-content;
+  width: auto;
+  white-space: nowrap;
 
   &:hover {
     text-decoration: underline;
+  }
+
+  @media (max-width: 1023px) {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    max-width: min-content;
+  }
+
+  @media (max-width: 767px) {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    max-width: min-content;
   }
 `;
 

@@ -38,16 +38,16 @@ const CrosswordCard = memo(({
         {isCompleted && <CompletedText>Đã hoàn thành</CompletedText>}
       </TitleSection>
       <CardFooter>
-        <InfoItem>
+        <InfoItem data-tooltip="Số người hoàn thành">
           <FaCheck size={18} color="#4CAF50" /> {completionCount}
         </InfoItem>
-        <InfoItem>
+        <InfoItem data-tooltip="Số câu hỏi">
           <FaQuestion size={18} color="#FF9800" /> {questionCount}
         </InfoItem>
-        <InfoItem>
+        <InfoItem data-tooltip="Tác giả">
           <FaUser size={18} color="#2196F3" /> {author}
         </InfoItem>
-        <InfoItem>
+        <InfoItem data-tooltip="Số lần chơi">
           <FaGamepad size={18} color="#9C27B0" /> {timesPlayed}
         </InfoItem>
       </CardFooter>
@@ -71,17 +71,22 @@ CrosswordCard.propTypes = {
 const CardContainer = styled.div`
   background: ${props => props.$isCompleted ? '#f0f7f0' : getBackgroundColor(props.$grade)};
   border-radius: 12px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: ${props => props.$width};
+  width: 100%;
+  min-width: 280px;
   height: ${props => props.$height};
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  min-width: 300px;
-  max-width: 400px;
+
+  @media (min-width: 768px) {
+    width: ${props => props.$width};
+    min-width: 300px;
+    max-width: 400px;
+  }
 
   &:hover {
     transform: translateY(-4px);
@@ -98,7 +103,7 @@ const TitleSection = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   color: #333;
   margin: 0;
   text-align: center;
@@ -110,6 +115,10 @@ const Title = styled.h2`
     overflow: hidden;
     text-overflow: ellipsis;
   ` : ''}
+
+  @media (min-width: 768px) {
+    font-size: 1.8rem;
+  }
 `;
 
 const CompletedText = styled.span`
@@ -132,14 +141,31 @@ const CardFooter = styled.div`
 
 const InfoItem = styled.span`
   color: #666;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 5px;
+  position: relative;
 
-  svg {
-    color: #555;
+  &:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 1.1rem;
   }
 `;
 

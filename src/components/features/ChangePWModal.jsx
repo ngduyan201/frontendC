@@ -155,10 +155,17 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background-color: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 12px;
-  width: 100%;
-  max-width: 450px;
+  width: 90%;
+  margin: 20px;
+  
+  @media (min-width: 768px) {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    margin: 0;
+  }
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 `;
 
@@ -210,7 +217,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  padding: 12px 16px;
+  padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
@@ -224,6 +231,10 @@ const Input = styled.input`
 
   &::placeholder {
     color: #999;
+  }
+
+  @media (min-width: 768px) {
+    padding: 12px 16px;
   }
 `;
 
